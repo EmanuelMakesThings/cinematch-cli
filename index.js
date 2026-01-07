@@ -1,15 +1,13 @@
 const fs = require('fs');
 const chalk = require('chalk');
 const readline = require('readline');
+const figlet = require('figlet');
 
 // Load movies
 const movies = JSON.parse(fs.readFileSync('movies.json', 'utf8'));
 
 // Setup keypress handling
 readline.emitKeypressEvents(process.stdin);
-if (process.stdin.isTTY) {
-    process.stdin.setRawMode(true);
-}
 
 const userChoices = {};
 let users = [];
@@ -26,10 +24,18 @@ function clearScreen() {
 }
 
 function showHeader() {
-    console.log(chalk.bold.cyan('========================================'));
-    console.log(chalk.bold.cyan('           CINEMATCH CLI               '));
-    console.log(chalk.bold.white('      Created by Jonah Cecil           '));
-    console.log(chalk.bold.cyan('========================================\n'));
+    const title = figlet.textSync('Cinematch', { font: 'Slant' });
+    const lines = title.split('\n').filter(l => l.trim().length > 0);
+    const width = Math.max(...lines.map(l => l.length));
+    const border = '═'.repeat(width + 4);
+    
+    console.log(chalk.cyan(`╔${border}╗`));
+    lines.forEach(l => {
+        console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
+    });
+    console.log(chalk.cyan(`╚${border}╝`));
+    console.log(chalk.bold.white(`     v1.0.1 | Created by Jonah Cecil       `));
+    console.log('');
 }
 
 async function startApp() {
@@ -88,13 +94,32 @@ function renderSwipe() {
     const user = users[currentUserIndex];
     const movie = sessionMovies[currentMovieIndex];
     
-    console.log(chalk.magenta.bold(`${user}'s Turn`));
-    console.log(chalk.gray(`Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}\n`));
+    const cardWidth = 60;
     
-    console.log(chalk.white.bgBlue.bold(`  ${movie.title}  `));
-    console.log(chalk.italic.white(`\n${movie.synopsis}\n`));
+    console.log(chalk.magenta.bold(`👤 ${user}'s Turn`));
+    console.log(chalk.gray(`🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}\n`));
     
-    console.log(chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (DISLIKE)'));
+    // Movie Card UI
+    console.log(chalk.white(`┌${'─'.repeat(cardWidth)}┐`));
+    const titleLine = `  ${movie.title}`.padEnd(cardWidth);
+    console.log(chalk.white('│') + chalk.bgBlue.bold.white(titleLine) + chalk.white('│'));
+    console.log(chalk.white(`├${'─'.repeat(cardWidth)}┤`));
+    
+    // Wrap synopsis text
+    const words = movie.synopsis.split(' ');
+    let line = '  ';
+    words.forEach(word => {
+        if ((line + word).length > (cardWidth - 4)) {
+            console.log(chalk.white('│') + chalk.white(line.padEnd(cardWidth)) + chalk.white('│'));
+            line = '  ' + word + ' ';
+        } else {
+            line += word + ' ';
+        }
+    });
+    console.log(chalk.white('│') + chalk.white(line.padEnd(cardWidth)) + chalk.white('│'));
+    console.log(chalk.white(`└${'─'.repeat(cardWidth)}┘`));
+    
+    console.log('\n' + chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (DISLIKE)'));
     console.log(chalk.gray('\nPress Ctrl+C to exit'));
 }
 
@@ -133,6 +158,8 @@ function handleSwipe(liked) {
         showHeader();
         
         if (currentUserIndex < users.length) {
+            const turnEnd = figlet.textSync('Done!', { font: 'Small' });
+            console.log(chalk.green(turnEnd));
             console.log(chalk.green.bold(`\nTurn complete for ${users[currentUserIndex - 1]}!`));
             console.log(chalk.yellow(`\nNext up: ${users[currentUserIndex]}`));
             console.log(chalk.gray('\nPass the keyboard to the next person.'));
@@ -149,8 +176,28 @@ function handleSwipe(liked) {
 
 function showResults() {
     clearScreen();
-    showHeader();
-    console.log(chalk.bold.yellow('--- FINAL MATCHES ---\n'));
+    
+    // Calculate widths for all ASCII art to ensure boxes match
+    const resText = figlet.textSync('MATCHES', { font: 'Slant' });
+    const enjoyText = figlet.textSync('ENJOY!', { font: 'Small' });
+    
+    const resLines = resText.split('\n').filter(l => l.trim().length > 0);
+    const enjoyLines = enjoyText.split('\n').filter(l => l.trim().length > 0);
+    
+    const maxAsciiWidth = Math.max(
+        ...resLines.map(l => l.length),
+        ...enjoyLines.map(l => l.length),
+        'Created by Jonah Cecil'.length
+    );
+    
+    const outerWidth = Math.max(maxAsciiWidth + 4, 60);
+
+    // Header Box
+    console.log(chalk.yellow(`╔${'═'.repeat(outerWidth)}╗`));
+    resLines.forEach(l => {
+        console.log(chalk.yellow(`║ `) + chalk.yellow(l.padEnd(outerWidth - 2)) + chalk.yellow(` ║`));
+    });
+    console.log(chalk.yellow(`╚${'═'.repeat(outerWidth)}╝\n`));
 
     const allLikes = Object.values(userChoices);
     const movieCounts = {};
@@ -167,25 +214,39 @@ function showResults() {
         .sort((a, b) => movieCounts[b] - movieCounts[a]);
 
     if (perfectMatches.length > 0) {
-        console.log(chalk.green.bold('✨ Perfect Matches (Everyone liked these!):'));
-        perfectMatches.forEach(m => console.log(chalk.green(` • ${m}`)));
-        console.log('');
+        console.log(chalk.green(`┌─ PERFECT MATCHES ${'─'.repeat(Math.max(0, outerWidth - 18))}┐`));
+        perfectMatches.forEach(m => {
+            console.log(chalk.green('│ ') + chalk.bold.white('✨ ' + m.padEnd(outerWidth - 5)) + chalk.green(' │'));
+        });
+        console.log(chalk.green(`└${'─'.repeat(outerWidth)}┘\n`));
     }
 
     if (commonMatches.length > 0) {
-        console.log(chalk.blue.bold('👍 Popular Choices (Majority liked these):'));
+        console.log(chalk.blue(`┌─ POPULAR CHOICES ${'─'.repeat(Math.max(0, outerWidth - 18))}┐`));
         commonMatches.forEach(m => {
-            console.log(chalk.blue(` • ${m} (${movieCounts[m]}/${users.length} votes)`));
+            const voteText = `[${movieCounts[m]}/${users.length} votes]`;
+            const content = `${m} ${voteText}`.padEnd(outerWidth - 2);
+            console.log(chalk.blue('│ ') + chalk.white(content) + chalk.blue(' │'));
         });
-        console.log('');
+        console.log(chalk.blue(`└${'─'.repeat(outerWidth)}┘\n`));
     }
 
     if (perfectMatches.length === 0 && commonMatches.length === 0) {
-        console.log(chalk.red('No common matches found. Maybe try another round?'));
+        console.log(chalk.red(`┌${'─'.repeat(outerWidth)}┐`));
+        console.log(chalk.red('│ ') + chalk.white('No common matches found. Maybe try another round?'.padEnd(outerWidth - 2)) + chalk.red(' │'));
+        console.log(chalk.red(`└${'─'.repeat(outerWidth)}┘\n`));
     }
 
-    console.log(chalk.cyan('\nThank you for using Cinematch!'));
-    console.log(chalk.white('Created by Jonah Cecil\n'));
+    // Footer Box
+    console.log(chalk.magenta(`╔${'═'.repeat(outerWidth)}╗`));
+    enjoyLines.forEach(l => {
+        console.log(chalk.magenta(`║ `) + chalk.magenta(l.padEnd(outerWidth - 2)) + chalk.magenta(` ║`));
+    });
+    // Fix: padding calculation to match the rest of the box
+    const creditText = 'Created by Jonah Cecil';
+    console.log(chalk.magenta(`║ `) + chalk.italic.white(creditText.padStart(outerWidth - 2)) + chalk.magenta(` ║`));
+    console.log(chalk.magenta(`╚${'═'.repeat(outerWidth)}╝\n`));
+
     process.exit();
 }
 
