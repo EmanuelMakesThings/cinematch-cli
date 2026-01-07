@@ -20,7 +20,7 @@ Created by **Jonah Cecil**.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/cinematch-cli.git
+   git clone https://github.com/EmanuelMakesThings/cinematch-cli.git
    cd cinematch-cli
    ```
 
