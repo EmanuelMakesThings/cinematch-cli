@@ -1,6 +1,6 @@
 {
   "name": "movieapp",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,9 @@
   "author": "Jonah Cecil",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.13.2",
     "chalk": "^4.1.2",
-    "figlet": "^1.9.4"
+    "figlet": "^1.9.4",
+    "jimp": "^0.16.1"
   }
 }

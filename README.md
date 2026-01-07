@@ -1,15 +1,20 @@
-# Cinematch CLI v1.0.1
+# Cinematch CLI v1.1.0
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
 Created by **Jonah Cecil**.
+
+## What's New in v1.1.0
+- **High-Fidelity Half-Block ASCII Posters:** Experience movie posters rendered with near-photographic clarity directly in your terminal, using advanced half-block characters for double the vertical resolution and full-color support.
+- **Dynamic Loading Screen:** A smooth, animated loading screen now prepares your movie reels, preventing swiping until all posters for a turn are ready.
+- **Robust Image Fallback:** Bad or unavailable poster URLs now gracefully display a "IMAGE NOT FOUND" placeholder, ensuring a consistent UI.
 
 ## Features
 
 - **Interactive UI:** Use arrow keys or `A/D` keys to swipe right (Like) or left (Dislike).
 - **Group Mode:** Supports any number of participants.
 - **Matching Engine:** Calculates unanimous "Perfect Matches" and majority "Popular Choices".
-- **Large Database:** Includes nearly 100 top-rated movies with synopses.
+- **Large Database:** Includes nearly 100 top-rated movies with synopses and now, vibrant ASCII posters.
 - **Clean Interface:** Beautiful terminal colors powered by `chalk`.
 
 ## Prerequisites

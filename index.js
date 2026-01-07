@@ -2,6 +2,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 const readline = require('readline');
 const figlet = require('figlet');
+const { getAsciiPoster } = require('./ascii-converter');
 
 // Load movies
 const movies = JSON.parse(fs.readFileSync('movies.json', 'utf8'));
@@ -15,6 +16,8 @@ let currentUserIndex = 0;
 let currentMovieIndex = 0;
 let userLikes = [];
 let sessionMovies = [];
+let posterCache = {}; // Cache ASCII art
+let postersLoading = false;
 let appState = 'SETUP'; // SETUP, SWIPING, TRANSITION, RESULTS
 
 const SWIPES_PER_USER = 10;
@@ -34,7 +37,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.0.1 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.1.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -73,7 +76,7 @@ function getRandomMovies(count) {
     return shuffled.slice(0, count);
 }
 
-function startUserTurn() {
+async function startUserTurn() {
     if (currentUserIndex >= users.length) {
         appState = 'RESULTS';
         showResults();
@@ -83,8 +86,46 @@ function startUserTurn() {
     currentMovieIndex = 0;
     userLikes = [];
     sessionMovies = getRandomMovies(SWIPES_PER_USER);
+    posterCache = {}; 
+    postersLoading = true;
+    appState = 'LOADING';
+
+    renderLoading();
+
+    // Fetch all posters for this turn
+    const fetchPromises = sessionMovies.map(async (movie, index) => {
+        if (movie.posterUrl) {
+            const ascii = await getAsciiPoster(movie.posterUrl, 60);
+            if (ascii) {
+                posterCache[index] = ascii;
+            }
+        }
+    });
+
+    await Promise.all(fetchPromises);
+    
+    postersLoading = false;
     appState = 'SWIPING';
     renderSwipe();
+}
+
+function renderLoading() {
+    clearScreen();
+    showHeader();
+    console.log(chalk.yellow.bold('\n   📥 Preparing your movie reels...'));
+    console.log(chalk.gray('   This will only take a moment.\n'));
+    
+    // Simple animated loader
+    const spinner = ['|', '/', '-', '\\'];
+    let i = 0;
+    const interval = setInterval(() => {
+        if (appState !== 'LOADING') {
+            clearInterval(interval);
+            return;
+        }
+        process.stdout.write(`\r   ${chalk.cyan(spinner[i])} Loading posters...`);
+        i = (i + 1) % spinner.length;
+    }, 100);
 }
 
 function renderSwipe() {
@@ -93,12 +134,23 @@ function renderSwipe() {
     
     const user = users[currentUserIndex];
     const movie = sessionMovies[currentMovieIndex];
+    const asciiPoster = posterCache[currentMovieIndex];
     
     const cardWidth = 60;
     
     console.log(chalk.magenta.bold(`👤 ${user}'s Turn`));
     console.log(chalk.gray(`🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}\n`));
     
+    if (asciiPoster) {
+        console.log(chalk.gray(`┌${'─'.repeat(60)}┐`));
+        console.log(asciiPoster.split('\n').map(line => line).join('\n'));
+        console.log(chalk.gray(`└${'─'.repeat(60)}┘\n`));
+    } else {
+        console.log(chalk.gray(`┌${'─'.repeat(60)}┐`));
+        for(let i=0; i<30; i++) console.log(chalk.gray('│' + ' '.repeat(60) + '│'));
+        console.log(chalk.gray(`└${'─'.repeat(60)}┘\n`));
+    }
+
     // Movie Card UI
     console.log(chalk.white(`┌${'─'.repeat(cardWidth)}┐`));
     const titleLine = `  ${movie.title}`.padEnd(cardWidth);
