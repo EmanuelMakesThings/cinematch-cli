@@ -45,7 +45,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.3.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.4.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -395,6 +395,19 @@ function showResults() {
         console.log(chalk.red(`┌${'─'.repeat(outerWidth)}┐`));
         console.log(chalk.red('│ ') + chalk.white('No common matches found. Maybe try another round?'.padEnd(outerWidth - 2)) + chalk.red(' │'));
         console.log(chalk.red(`└${'─'.repeat(outerWidth)}┘\n`));
+        process.exit();
+    }
+
+    if (perfectMatches.length === 0 && users.length >= 3 && commonMatches.length > 0) {
+        console.log(chalk.yellow.bold('\n   ⚠️  NO PERFECT MATCH FOUND!'));
+        console.log(chalk.gray('   Since there are 3+ people, let\'s settle this with a TIE-BREAKER...\n'));
+        console.log(chalk.gray('   Press any key to start the roulette!'));
+        
+        appState = 'TRANSITION';
+        process.stdin.once('data', () => {
+            startTieBreaker(commonMatches.slice(0, 3));
+        });
+        return;
     }
 
     // Footer Box
@@ -402,12 +415,69 @@ function showResults() {
     enjoyLines.forEach(l => {
         console.log(chalk.magenta(`║ `) + chalk.magenta(l.padEnd(outerWidth - 2)) + chalk.magenta(` ║`));
     });
-    // Fix: padding calculation to match the rest of the box
     const creditText = 'Created by Jonah Cecil';
     console.log(chalk.magenta(`║ `) + chalk.italic.white(creditText.padStart(outerWidth - 2)) + chalk.magenta(` ║`));
     console.log(chalk.magenta(`╚${'═'.repeat(outerWidth)}╝\n`));
 
     process.exit();
+}
+
+async function startTieBreaker(candidates) {
+    appState = 'TIE_BREAKER';
+    let elapsed = 0;
+    let index = 0;
+    let currentInterval = 80; // Start fast
+    const maxElapsed = 4000;  // Total spin time
+    
+    const winner = candidates[Math.floor(Math.random() * candidates.length)];
+    
+    const spin = async () => {
+        clearScreen();
+        showHeader();
+        
+        console.log(chalk.yellow.bold('   🎰 TIE-BREAKER ROULETTE 🎰\n'));
+        
+        const currentTitle = candidates[index];
+        const displayTitle = figlet.textSync(currentTitle.length > 15 ? 'CHOOSING...' : currentTitle, { font: 'Small' });
+        
+        console.log(chalk.cyan(displayTitle));
+        console.log('\n' + chalk.gray('   ' + '▓'.repeat(index + 1).padEnd(candidates.length, '░')));
+        console.log(chalk.gray(`\n   Rotating through ${candidates.length} top choices...`));
+        
+        index = (index + 1) % candidates.length;
+        elapsed += currentInterval;
+        
+        // Gradually slow down the interval (linear easing)
+        if (elapsed < maxElapsed) {
+            currentInterval += 15; 
+            setTimeout(spin, currentInterval);
+        } else {
+            renderWinner(winner);
+        }
+    };
+
+    setTimeout(spin, currentInterval);
+}
+
+function renderWinner(winner) {
+    clearScreen();
+    showHeader();
+    
+    const winText = figlet.textSync('WINNER', { font: 'Slant' });
+    console.log(chalk.green.bold(winText));
+    
+    const boxWidth = Math.max(winner.length + 10, 40);
+    console.log(chalk.green(`╔${'═'.repeat(boxWidth)}╗`));
+    console.log(chalk.green('║') + chalk.white.bold(`   ✨ ${winner} ✨   `.padStart(boxWidth / 2 + winner.length / 2).padEnd(boxWidth)) + chalk.green('║'));
+    console.log(chalk.green(`╚${'═'.repeat(boxWidth)}╝`));
+    
+    console.log(chalk.yellow('\n   The fates have spoken. Enjoy your movie! 🍿'));
+    
+    setTimeout(() => {
+        const enjoyText = figlet.textSync('ENJOY!', { font: 'Small' });
+        console.log('\n' + chalk.magenta(enjoyText));
+        process.exit();
+    }, 2000);
 }
 
 startApp();

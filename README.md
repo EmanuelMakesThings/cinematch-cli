@@ -1,7 +1,7 @@
 
 <img width="522" height="199" alt="Screenshot 2026-01-07 153325" src="https://github.com/user-attachments/assets/33b71ccf-cdd7-41f7-8353-4c56853ed586" />
 
-# Cinematch CLI v1.3.0
+# Cinematch CLI v1.4.0
 
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
@@ -15,9 +15,8 @@ Created by **Jonah Cecil**.
 
 
 
-## What's New in v1.3.0
-- **Refined Swipe UI:** Removed poster outlines for a cleaner aesthetic and introduced a boxed "Turn Info" header to better track the current user and progress.
-- **Improved Image Fallback:** Enhanced the "Image Not Found" placeholder to perfectly match the 60x30 footprint of successful posters, maintaining a stable layout.
+## What's New in v1.4.0
+- **Tie-Breaker Roulette:** If a group of 3+ users cannot find a unanimous "Perfect Match," the app automatically enters a high-stakes animated roulette to choose between the top 3 most popular movies.
 
 ## Major Features
 - **Interactive Genre Filtering:** A multi-select menu allows groups to choose exactly what kind of movie night they want (Action, Comedy, etc.), with smart backfilling to ensure a full deck.
