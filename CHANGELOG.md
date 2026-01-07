@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-01-07
+
+### Added
+- **Quick Rematch Feature:** Added a post-game prompt `[R]` that allows groups to immediately start a new session with 10 random movies, bypassing setup and genre selection for a faster second round.
+- **Angry Forced Pick:** Added a "patience" system for 2-user groups. If no match is found after 3 consecutive rounds, the app triggers an angry animation and forces a random movie selection.
+
 ## [1.4.0] - 2026-01-07
 
 ### Added

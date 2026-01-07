@@ -22,6 +22,7 @@ let sessionMovies = [];
 let posterCache = {}; // Cache ASCII art
 let postersLoading = false;
 let appState = 'SETUP'; // SETUP, GENRE_SELECT, SWIPING, TRANSITION, RESULTS
+let attemptCount = 0; // Track consecutive fails for 2 users
 
 // Genre Selection State
 let availableGenres = [];
@@ -45,7 +46,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.4.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.5.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -299,6 +300,8 @@ process.stdin.on('keypress', (str, key) => {
         }
     } else if (appState === 'TRANSITION') {
         startUserTurn();
+    } else if (appState === 'REMATCH_PROMPT') {
+        handleRematchInput(key);
     }
 });
 
@@ -373,6 +376,17 @@ function showResults() {
         .filter(title => movieCounts[title] > 1 && movieCounts[title] < users.length)
         .sort((a, b) => movieCounts[b] - movieCounts[a]);
 
+    if (perfectMatches.length > 0 || commonMatches.length > 0) {
+        attemptCount = 0; // Reset on any success
+    } else {
+        attemptCount++;
+    }
+
+    if (users.length === 2 && attemptCount >= 3 && perfectMatches.length === 0 && commonMatches.length === 0) {
+        triggerAngryForcedPick();
+        return;
+    }
+
     if (perfectMatches.length > 0) {
         console.log(chalk.green(`┌─ PERFECT MATCHES ${'─'.repeat(Math.max(0, outerWidth - 18))}┐`));
         perfectMatches.forEach(m => {
@@ -395,7 +409,6 @@ function showResults() {
         console.log(chalk.red(`┌${'─'.repeat(outerWidth)}┐`));
         console.log(chalk.red('│ ') + chalk.white('No common matches found. Maybe try another round?'.padEnd(outerWidth - 2)) + chalk.red(' │'));
         console.log(chalk.red(`└${'─'.repeat(outerWidth)}┘\n`));
-        process.exit();
     }
 
     if (perfectMatches.length === 0 && users.length >= 3 && commonMatches.length > 0) {
@@ -419,7 +432,7 @@ function showResults() {
     console.log(chalk.magenta(`║ `) + chalk.italic.white(creditText.padStart(outerWidth - 2)) + chalk.magenta(` ║`));
     console.log(chalk.magenta(`╚${'═'.repeat(outerWidth)}╝\n`));
 
-    process.exit();
+    promptRematch();
 }
 
 async function startTieBreaker(candidates) {
@@ -476,8 +489,69 @@ function renderWinner(winner) {
     setTimeout(() => {
         const enjoyText = figlet.textSync('ENJOY!', { font: 'Small' });
         console.log('\n' + chalk.magenta(enjoyText));
-        process.exit();
+        console.log('');
+        promptRematch();
     }, 2000);
+}
+
+async function triggerAngryForcedPick() {
+    appState = 'ANGRY_PICK';
+    attemptCount = 0; // Reset for next time
+    
+    const frames = [
+        chalk.red('😠 NOPE.'),
+        chalk.red.bold('😤 STILL NOTHING?!'),
+        chalk.bgRed.white.bold('💢 OKAY, THAT\'S IT.'),
+        chalk.red.strikethrough('❌ YOU TWO ARE IMPOSSIBLE.')
+    ];
+
+    for (const frame of frames) {
+        clearScreen();
+        showHeader();
+        console.log('\n\n\n   ' + frame);
+        await new Promise(r => setTimeout(resolve => r(), 800));
+    }
+
+    clearScreen();
+    showHeader();
+    
+    const angryTitle = figlet.textSync('ENOUGH!', { font: 'Slant' });
+    console.log(chalk.red.bold(angryTitle));
+    console.log(chalk.yellow.bold('\n   Okay, you asked for it...'));
+    console.log(chalk.yellow('   Since you can\'t agree on ANYTHING, you have to watch:'));
+    
+    const randomMovie = movies[Math.floor(Math.random() * movies.length)];
+    
+    setTimeout(() => {
+        console.log('\n' + chalk.bgRed.white.bold(`   ✨ ${randomMovie.title.toUpperCase()} ✨   `));
+        console.log(chalk.gray('\n   No more swiping. Sit down and watch it. 🍿'));
+        console.log('');
+        promptRematch();
+    }, 1500);
+}
+
+function promptRematch() {
+    appState = 'REMATCH_PROMPT';
+    console.log(chalk.cyan.bold('   🔄 Press [R] for a REMATCH (Same users, random movies)'));
+    console.log(chalk.gray('   Press [Q] or Ctrl+C to quit\n'));
+}
+
+function handleRematchInput(key) {
+    if (key.name === 'r') {
+        // Reset state for a quick rematch
+        currentUserIndex = 0;
+        currentMovieIndex = 0;
+        for (const user of users) {
+            userChoices[user] = [];
+        }
+        
+        // Skip setup/genres, use all movies, and start immediately
+        filteredMovies = [...movies];
+        appState = 'SWIPING';
+        startUserTurn();
+    } else if (key.name === 'q') {
+        process.exit();
+    }
 }
 
 startApp();
