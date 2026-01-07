@@ -1,11 +1,14 @@
 const fs = require('fs');
+const path = require('path');
 const chalk = require('chalk');
 const readline = require('readline');
 const figlet = require('figlet');
 const { getAsciiPoster } = require('./ascii-converter');
 
 // Load movies
-const movies = JSON.parse(fs.readFileSync('movies.json', 'utf8'));
+const moviesPath = path.join(__dirname, '../data/movies.json');
+const movies = JSON.parse(fs.readFileSync(moviesPath, 'utf8'));
+let filteredMovies = [...movies];
 
 // Setup keypress handling
 readline.emitKeypressEvents(process.stdin);
@@ -18,7 +21,12 @@ let userLikes = [];
 let sessionMovies = [];
 let posterCache = {}; // Cache ASCII art
 let postersLoading = false;
-let appState = 'SETUP'; // SETUP, SWIPING, TRANSITION, RESULTS
+let appState = 'SETUP'; // SETUP, GENRE_SELECT, SWIPING, TRANSITION, RESULTS
+
+// Genre Selection State
+let availableGenres = [];
+let selectedGenreIndices = new Set();
+let genreCursor = 0;
 
 const SWIPES_PER_USER = 10;
 
@@ -37,8 +45,18 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.1.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.2.0 | Created by Jonah Cecil       `));
     console.log('');
+}
+
+function getUniqueGenres() {
+    const genres = new Set();
+    movies.forEach(m => {
+        if (m.genres) {
+            m.genres.forEach(g => genres.add(g));
+        }
+    });
+    return Array.from(genres).sort();
 }
 
 async function startApp() {
@@ -62,17 +80,99 @@ async function startApp() {
         }
         
         rl.close();
+        
+        // Initialize Genre Selection
+        availableGenres = getUniqueGenres();
+        appState = 'GENRE_SELECT';
+        
         if (process.stdin.isTTY) {
             process.stdin.setRawMode(true);
         }
         process.stdin.resume();
-        appState = 'SWIPING';
-        startUserTurn();
+        
+        renderGenreSelect();
     });
 }
 
+function renderGenreSelect() {
+    clearScreen();
+    showHeader();
+    
+    console.log(chalk.yellow.bold('Select Genres (Space to toggle, Enter to confirm):\n'));
+    
+    availableGenres.forEach((genre, index) => {
+        const isSelected = selectedGenreIndices.has(index);
+        const isHovered = index === genreCursor;
+        
+        const checkbox = isSelected ? chalk.green('[x]') : chalk.gray('[ ]');
+        const label = isSelected ? chalk.green.bold(genre) : chalk.white(genre);
+        const cursor = isHovered ? chalk.cyan('>') : ' ';
+        
+        console.log(`${cursor} ${checkbox} ${label}`);
+    });
+    
+    const allSelected = selectedGenreIndices.size === 0;
+    console.log(chalk.gray('\n(If no genres are selected, ALL movies will be included)'));
+}
+
+function handleGenreInput(key) {
+    if (key.name === 'up') {
+        genreCursor = Math.max(0, genreCursor - 1);
+        renderGenreSelect();
+    } else if (key.name === 'down') {
+        genreCursor = Math.min(availableGenres.length - 1, genreCursor + 1);
+        renderGenreSelect();
+    } else if (key.name === 'space') {
+        if (selectedGenreIndices.has(genreCursor)) {
+            selectedGenreIndices.delete(genreCursor);
+        } else {
+            selectedGenreIndices.add(genreCursor);
+        }
+        renderGenreSelect();
+    } else if (key.name === 'return') {
+        finalizeGenreSelection();
+    }
+}
+
+function finalizeGenreSelection() {
+    let selectedGenres = Array.from(selectedGenreIndices).map(i => availableGenres[i]);
+    
+    if (selectedGenres.length === 0) {
+        // All movies if none selected
+        filteredMovies = [...movies];
+        console.log(chalk.green('\nNo specific genres selected. Using ALL movies.'));
+    } else {
+        // Filter movies that match ANY of the selected genres
+        const genreMovies = movies.filter(m => 
+            m.genres && m.genres.some(g => selectedGenres.includes(g))
+        );
+        
+        if (genreMovies.length < SWIPES_PER_USER) {
+            console.log(chalk.yellow(`\n⚠️  Only ${genreMovies.length} movies found for selected genres.`));
+            console.log(chalk.yellow(`   Adding random movies from other genres to reach a full deck...`));
+            
+            // Get unique movies that are NOT in the current selection
+            const existingTitles = new Set(genreMovies.map(m => m.title));
+            const otherMovies = movies.filter(m => !existingTitles.has(m.title));
+            const shuffledOthers = [...otherMovies].sort(() => 0.5 - Math.random());
+            const needed = SWIPES_PER_USER - genreMovies.length;
+            
+            filteredMovies = [...genreMovies, ...shuffledOthers.slice(0, needed)];
+        } else {
+            filteredMovies = genreMovies;
+        }
+        console.log(chalk.green(`\nSelected Genres: ${selectedGenres.join(', ')} (Pool size: ${filteredMovies.length})`));
+    }
+    
+    // Slight delay to read the message
+    setTimeout(() => {
+        appState = 'SWIPING';
+        startUserTurn();
+    }, 1500);
+}
+
 function getRandomMovies(count) {
-    const shuffled = [...movies].sort(() => 0.5 - Math.random());
+    const shuffled = [...filteredMovies].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
 }
 
@@ -156,6 +256,13 @@ function renderSwipe() {
     const titleLine = `  ${movie.title}`.padEnd(cardWidth);
     console.log(chalk.white('│') + chalk.bgBlue.bold.white(titleLine) + chalk.white('│'));
     console.log(chalk.white(`├${'─'.repeat(cardWidth)}┤`));
+
+    // Genres Line
+    if (movie.genres) {
+        const genreText = `  GENRE: ${movie.genres.join(', ')}`.padEnd(cardWidth);
+        console.log(chalk.white('│') + chalk.yellow(genreText) + chalk.white('│'));
+        console.log(chalk.white(`├${'─'.repeat(cardWidth)}┤`));
+    }
     
     // Wrap synopsis text
     const words = movie.synopsis.split(' ');
@@ -180,7 +287,9 @@ process.stdin.on('keypress', (str, key) => {
         process.exit();
     }
 
-    if (appState === 'SWIPING') {
+    if (appState === 'GENRE_SELECT') {
+        handleGenreInput(key);
+    } else if (appState === 'SWIPING') {
         const isRight = key && (key.name === 'right' || key.name === 'd');
         const isLeft = key && (key.name === 'left' || key.name === 'a');
 

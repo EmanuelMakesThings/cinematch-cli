@@ -11,18 +11,18 @@ Created by **Jonah Cecil**.
 
 
 
-## What's New in v1.1.0
-- **High-Fidelity Half-Block ASCII Posters:** Experience movie posters rendered with near-photographic clarity directly in your terminal, using advanced half-block characters for double the vertical resolution and full-color support.
-- **Dynamic Loading Screen:** A smooth, animated loading screen now prepares your movie reels, preventing swiping until all posters for a turn are ready.
-- **Robust Image Fallback:** Bad or unavailable poster URLs now gracefully display a "IMAGE NOT FOUND" placeholder, ensuring a consistent UI.
+## What's New in v1.2.0
+- **Interactive Genre Filtering:** A new multi-select menu allows groups to choose exactly what kind of movie night they want (e.g., Action + Sci-Fi).
+- **Smart Backfilling:** If a selected genre has too few movies, the app automatically adds random picks from other genres to ensure a full game, keeping the experience smooth.
+- **Refined Project Structure:** Codebase is now cleaner and better organized with `src` and `data` directories.
 
 ## Features
 
-- **Interactive UI:** Use arrow keys or `A/D` keys to swipe right (Like) or left (Dislike).
+- **Interactive UI:** Swipe right (Like) or left (Dislike) on beautiful ASCII posters.
+- **Genre Selection:** Filter movies by mood using an easy-to-use checklist menu.
 - **Group Mode:** Supports any number of participants.
 - **Matching Engine:** Calculates unanimous "Perfect Matches" and majority "Popular Choices".
-- **Large Database:** Includes nearly 100 top-rated movies with synopses and now, vibrant ASCII posters.
-- **Clean Interface:** Beautiful terminal colors powered by `chalk`.
+- **Large Database:** Includes nearly 100 top-rated movies with synopses and genre tags.
 
 ## Prerequisites
 
@@ -45,23 +45,26 @@ Created by **Jonah Cecil**.
 
 Start the application:
 ```bash
-node index.js
+node src/index.js
 ```
 
 ### How it Works
 1. **Setup:** Enter the number of people participating.
-2. **Swipe Phase:** Each person takes turns swiping on a random selection of 10 movies.
-3. **Results:** After everyone has finished, the app compares the "Likes" and presents the best matches for the group!
+2. **Genre Select:** Pick one or more genres to narrow down the list (or just hit Enter for everything!).
+3. **Swipe Phase:** Each person takes turns swiping on a selection of 10 movies.
+4. **Results:** After everyone has finished, the app compares the "Likes" and presents the best matches for the group!
 
 ### Controls
-- **Right Arrow** or **D**: Like / Swipe Right
-- **Left Arrow** or **A**: Dislike / Swipe Left
+- **Arrow Keys**: Navigate Menus / Swipe
+- **Space**: Toggle Selection (in menus)
+- **Enter**: Confirm Selection
 - **Ctrl + C**: Exit
 
 ## Project Structure
 
-- `index.js`: The main application logic and terminal interface.
-- `movies.json`: The database of movies and synopses.
+- `src/`: Application source code (`index.js`, `ascii-converter.js`).
+- `data/`: JSON data files (`movies.json`).
+- `scripts/`: Utility and test scripts.
 - `package.json`: Project metadata and dependencies.
 
 ## License

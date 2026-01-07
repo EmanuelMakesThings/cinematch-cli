@@ -1,4 +1,4 @@
-const { getAsciiPoster } = require('./ascii-converter');
+const { getAsciiPoster } = require('../src/ascii-converter');
 const chalk = require('chalk');
 
 async function test() {
