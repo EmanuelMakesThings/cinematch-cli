@@ -36,6 +36,11 @@ Start the application:
 node index.js
 ```
 
+### How it Works
+1. **Setup:** Enter the number of people participating.
+2. **Swipe Phase:** Each person takes turns swiping on a random selection of 10 movies.
+3. **Results:** After everyone has finished, the app compares the "Likes" and presents the best matches for the group!
+
 ### Controls
 - **Right Arrow** or **D**: Like / Swipe Right
 - **Left Arrow** or **A**: Dislike / Swipe Left
