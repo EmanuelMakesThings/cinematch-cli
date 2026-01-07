@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-07
+
+### Added
+- **User-Agent Headers:** Added `User-Agent` to axios requests in `ascii-converter.js` to improve compatibility with sites that block generic scrapers (e.g., Wikimedia).
+
+### Fixed
+- **Poster Database:** Successfully repaired 53 broken movie poster URLs in `data/movies.json`, ensuring high-quality ASCII art displays for more of the library.
+
+### Changed
+- **Folder Organization:** Moved test scripts to a standard `test/` directory and cleaned up the root project folder.
+
 ## [1.2.0] - 2026-01-07
 
 ### Added

@@ -45,7 +45,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.2.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.2.1 | Created by Jonah Cecil       `));
     console.log('');
 }
 

@@ -1,7 +1,7 @@
 
 <img width="528" height="195" alt="Screenshot 2026-01-07 083140" src="https://github.com/user-attachments/assets/09f2ab3e-9797-45ca-a875-0a81c5a32f50" />
 
-# Cinematch CLI v1.2.0
+# Cinematch CLI v1.2.1
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
@@ -13,6 +13,11 @@ Created by **Jonah Cecil**.
 
 
 
+
+## What's New in v1.2.1
+- **Poster Database Cleanup:** Fixed 53 broken or forbidden movie poster URLs in `movies.json`, significantly reducing the occurrence of the "Image Not Found" placeholder.
+- **Improved Compatibility:** Added `User-Agent` headers to poster requests to bypass security blocks on common hosting sites like Wikimedia.
+- **Project Reorganization:** Cleaned up root directory and moved tests to a dedicated `test/` folder.
 
 ## What's New in v1.2.0
 - **Interactive Genre Filtering:** A new multi-select menu allows groups to choose exactly what kind of movie night they want (e.g., Action + Sci-Fi).
@@ -48,7 +53,12 @@ Created by **Jonah Cecil**.
 
 Start the application:
 ```bash
-node src/index.js
+npm start
+```
+
+Run a poster test:
+```bash
+npm test
 ```
 
 ### How it Works
@@ -67,7 +77,7 @@ node src/index.js
 
 - `src/`: Application source code (`index.js`, `ascii-converter.js`).
 - `data/`: JSON data files (`movies.json`).
-- `scripts/`: Utility and test scripts.
+- `test/`: Test scripts (`test-poster.js`).
 - `package.json`: Project metadata and dependencies.
 
 ## License

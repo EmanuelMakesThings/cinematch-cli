@@ -19,7 +19,10 @@ async function getAsciiPoster(url, width = 60) {
     try {
         const response = await axios.get(url, { 
             responseType: 'arraybuffer',
-            timeout: 5000 
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (movieApp-CLI/1.2.0)'
+            }
         });
         const image = await Jimp.read(response.data);
         
