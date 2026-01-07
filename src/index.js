@@ -45,7 +45,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.2.1 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.3.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -238,17 +238,16 @@ function renderSwipe() {
     
     const cardWidth = 60;
     
-    console.log(chalk.magenta.bold(`👤 ${user}'s Turn`));
-    console.log(chalk.gray(`🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}\n`));
+    const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
+    console.log(chalk.magenta(`┌${'─'.repeat(cardWidth)}┐`));
+    console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(cardWidth - 2)) + chalk.magenta(' │'));
+    console.log(chalk.magenta(`└${'─'.repeat(cardWidth)}┘\n`));
     
     if (asciiPoster) {
-        console.log(chalk.gray(`┌${'─'.repeat(60)}┐`));
-        console.log(asciiPoster.split('\n').map(line => line).join('\n'));
-        console.log(chalk.gray(`└${'─'.repeat(60)}┘\n`));
+        console.log(asciiPoster + '\n');
     } else {
-        console.log(chalk.gray(`┌${'─'.repeat(60)}┐`));
-        for(let i=0; i<30; i++) console.log(chalk.gray('│' + ' '.repeat(60) + '│'));
-        console.log(chalk.gray(`└${'─'.repeat(60)}┘\n`));
+        for(let i=0; i<30; i++) console.log(' '.repeat(cardWidth));
+        console.log('');
     }
 
     // Movie Card UI

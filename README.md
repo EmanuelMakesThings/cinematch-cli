@@ -1,7 +1,7 @@
 
 <img width="527" height="195" alt="Screenshot 2026-01-07 142357" src="https://github.com/user-attachments/assets/79be9395-e406-47f9-9469-2cbfdcc46cf7" />
 
-# Cinematch CLI v1.2.1
+# Cinematch CLI v1.3.0
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
@@ -14,15 +14,12 @@ Created by **Jonah Cecil**.
 
 
 
-## What's New in v1.2.1
-- **Poster Database Cleanup:** Fixed 53 broken or forbidden movie poster URLs in `movies.json`, significantly reducing the occurrence of the "Image Not Found" placeholder.
-- **Improved Compatibility:** Added `User-Agent` headers to poster requests to bypass security blocks on common hosting sites like Wikimedia.
-- **Project Reorganization:** Cleaned up root directory and moved tests to a dedicated `test/` folder.
+## What's New in v1.3.0
+- **Refined Swipe UI:** Removed poster outlines for a cleaner aesthetic and introduced a boxed "Turn Info" header to better track the current user and progress.
+- **Improved Image Fallback:** Enhanced the "Image Not Found" placeholder to perfectly match the 60x30 footprint of successful posters, maintaining a stable layout.
 
-## What's New in v1.2.0
-- **Interactive Genre Filtering:** A new multi-select menu allows groups to choose exactly what kind of movie night they want (e.g., Action + Sci-Fi).
-- **Smart Backfilling:** If a selected genre has too few movies, the app automatically adds random picks from other genres to ensure a full game, keeping the experience smooth.
-- **Refined Project Structure:** Codebase is now cleaner and better organized with `src` and `data` directories.
+## Major Features
+- **Interactive Genre Filtering:** A multi-select menu allows groups to choose exactly what kind of movie night they want (Action, Comedy, etc.), with smart backfilling to ensure a full deck.
 
 ## Features
 

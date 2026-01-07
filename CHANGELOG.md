@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-07
+
+### Added
+- **Boxed Turn Info:** Added a decorative magenta box around the user's turn and movie progress information for better visibility.
+
+### Changed
+- **Swipe UI Refinement:** Removed the border outline from movie posters to create a more open, modern look.
+- **Enhanced Placeholder:** Updated the "Image Not Found" ASCII art to a full-sized 60x30 blocky frame that occupies the same space as a standard poster.
+
 ## [1.2.1] - 2026-01-07
 
 ### Added
