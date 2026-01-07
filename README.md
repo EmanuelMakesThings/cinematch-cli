@@ -7,7 +7,7 @@ Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multip
 
 Created by **Jonah Cecil**.
 
-<img width="580" height="898" alt="Screenshot 2026-01-07 083234" src="https://github.com/user-attachments/assets/f546c239-039b-4e42-926a-11576fa38548" />
+<img width="568" height="925" alt="Screenshot 2026-01-07 153457" src="https://github.com/user-attachments/assets/cddfed5f-954f-4dab-b47a-e3eee8020206" />
 
 <img width="573" height="424" alt="Screenshot 2026-01-07 083320" src="https://github.com/user-attachments/assets/e194ba34-ca3f-44a5-8940-3a5921e4ea1d" />
 
