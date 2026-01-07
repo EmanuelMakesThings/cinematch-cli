@@ -1,4 +1,5 @@
-<img width="525" height="191" alt="Screenshot 2026-01-07 083140" src="https://github.com/user-attachments/assets/ca9385d7-56a5-4bfd-833c-49edebd6d83b" />
+
+<img width="528" height="195" alt="Screenshot 2026-01-07 083140" src="https://github.com/user-attachments/assets/09f2ab3e-9797-45ca-a875-0a81c5a32f50" />
 
 # Cinematch CLI v1.2.0
 
@@ -6,8 +7,10 @@ Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multip
 
 Created by **Jonah Cecil**.
 
-<img width="572" height="1074" alt="Screenshot 2026-01-07 083234" src="https://github.com/user-attachments/assets/4b4d685f-1ab0-4476-8f45-bb2408de6cf1" />
-<img width="577" height="365" alt="Screenshot 2026-01-07 083320" src="https://github.com/user-attachments/assets/0dfcaed4-a731-4326-994d-9aa6c85ababb" />
+<img width="580" height="898" alt="Screenshot 2026-01-07 083234" src="https://github.com/user-attachments/assets/f546c239-039b-4e42-926a-11576fa38548" />
+
+<img width="573" height="424" alt="Screenshot 2026-01-07 083320" src="https://github.com/user-attachments/assets/e194ba34-ca3f-44a5-8940-3a5921e4ea1d" />
+
 
 
 
