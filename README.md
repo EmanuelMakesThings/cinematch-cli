@@ -3,6 +3,9 @@
 
 # Cinematch CLI v1.3.0
 
+![showcase](https://github.com/user-attachments/assets/1b1794ba-818d-498f-88ce-6461c2c54ada)
+
+
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
 Created by **Jonah Cecil**.
