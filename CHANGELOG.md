@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.3] - 2026-01-07
+### Changed
+- Introduced per-user movie variation: The second person and onwards now see a slightly different set of movies (2 different titles) than the first person to keep things fresh.
+- Increased session pool size to 12 movies to support deck variation while maintaining high match probability.
+
 ## [1.8.2] - 2026-01-07
 ### Changed
 - Refactored swiping logic to use a single "session deck" for all users, increasing match probability.

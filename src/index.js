@@ -69,7 +69,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.8.2 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.8.3 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -170,7 +170,8 @@ function finalizeGenreSelection() {
             m.genres && m.genres.some(g => selectedGenres.includes(g))
         );
         
-        if (genreMovies.length < SWIPES_PER_USER) {
+        const requiredPoolSize = SWIPES_PER_USER + 2;
+        if (genreMovies.length < requiredPoolSize) {
             console.log(chalk.yellow(`\n⚠️  Only ${genreMovies.length} movies found for selected genres.`));
             console.log(chalk.yellow(`   Adding random movies from other genres to reach a full deck...`));
             
@@ -178,7 +179,7 @@ function finalizeGenreSelection() {
             const existingTitles = new Set(genreMovies.map(m => m.title));
             const otherMovies = movies.filter(m => !existingTitles.has(m.title));
             const shuffledOthers = shuffle([...otherMovies]);
-            const needed = SWIPES_PER_USER - genreMovies.length;
+            const needed = requiredPoolSize - genreMovies.length;
             
             filteredMovies = [...genreMovies, ...shuffledOthers.slice(0, needed)];
         } else {
@@ -199,7 +200,8 @@ function getRandomMovies(count) {
 }
 
 async function initializeSession() {
-    sessionMovies = getRandomMovies(SWIPES_PER_USER);
+    // We fetch 2 extra movies so the first person and subsequent people see different decks
+    sessionMovies = getRandomMovies(SWIPES_PER_USER + 2);
     posterCache = {};
     postersLoading = true;
     appState = 'LOADING';
@@ -279,8 +281,10 @@ function renderSwipe() {
     showHeader();
     
     const user = users[currentUserIndex];
-    const movie = sessionMovies[currentMovieIndex];
-    const asciiPoster = posterCache[currentMovieIndex];
+    // Person 1 sees movies 0-9, Person 2+ sees movies 2-11
+    const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + 2;
+    const movie = sessionMovies[movieIdx];
+    const asciiPoster = posterCache[movieIdx];
     const synopsis = movie.synopsis || '';
     
     const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
@@ -410,6 +414,7 @@ async function playFlipAnimation() {
         
         // Maintain vertical position of the Turn Info header
         const user = users[currentUserIndex];
+        const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + 2;
         const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
         console.log(chalk.magenta(`┌${'─'.repeat(CARD_WIDTH)}┐`));
         console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(CARD_WIDTH - 2)) + chalk.magenta(' │'));
@@ -464,7 +469,8 @@ async function handleSwipe(liked) {
     if (isAnimating) return;
     isAnimating = true;
 
-    const movie = sessionMovies[currentMovieIndex];
+    const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + 2;
+    const movie = sessionMovies[movieIdx];
     if (liked) {
         userLikes.push(movie.title);
     }
