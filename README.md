@@ -31,10 +31,6 @@ Created by **Jonah Cecil**.
 - **Enhanced Data Metrics:** The summary view now calculates a **Compatibility Score** between users based on their shared interests.
 - **10 New Movies:** Fresh hits like *Dune: Part Two*, *Spider-Man: Across the Spider-Verse*, and *Poor Things* have been added to the database.
 
-## What's New in v1.8.3
-- **Dynamic User Decks:** To keep the experience fresh, the second person and onwards now see two movies that are different from the first person's deck.
-- **Balanced Matching:** Even with deck variation, users still share 80% of the same movies, ensuring "Perfect Matches" remain frequent and rewarding.
-
 ## Major Features
 - **Info Flip (Deep Dive):** Press `[I]` while swiping to "flip" the movie card and reveal deep-dive details like the Director, Starring Cast, IMDB Rating, and a full synopsis.
 - **Tie-Breaker Roulette:** If a group of 3+ users cannot find a unanimous "Perfect Match," the app automatically enters a high-stakes animated roulette to choose between the top 3 most popular movies.
