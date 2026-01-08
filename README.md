@@ -1,5 +1,5 @@
 
-<img width="516" height="153" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/283b97e4-6f57-4a95-ba6a-81ad4fe48be1" />
+<img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
 
 # Cinematch CLI v1.6.0
 
