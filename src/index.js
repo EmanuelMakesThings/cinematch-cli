@@ -22,6 +22,7 @@ let sessionMovies = [];
 let posterCache = {}; // Cache ASCII art
 let postersLoading = false;
 let isAnimating = false; // Prevent input during animations
+let isFlipped = false; // Toggle between poster and info
 let appState = 'SETUP'; // SETUP, GENRE_SELECT, SWIPING, TRANSITION, RESULTS
 let attemptCount = 0; // Track consecutive fails for 2 users
 
@@ -47,7 +48,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.7.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.8.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -262,14 +263,66 @@ function renderSwipe() {
     console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(cardWidth - 2)) + chalk.magenta(' │'));
     console.log(chalk.magenta(`└${'─'.repeat(cardWidth)}┘\n`));
     
-    if (asciiPoster) {
-        console.log(asciiPoster + '\n');
+    if (isFlipped) {
+        // Render the "Back" of the card
+        console.log(chalk.cyan(`┌${'─'.repeat(cardWidth)}┐`));
+        console.log(chalk.cyan('│') + chalk.bold.white('   MOVIE DETAILS'.padEnd(cardWidth)) + chalk.cyan('│'));
+        console.log(chalk.cyan(`├${'─'.repeat(cardWidth)}┤`));
+        
+        const details = [
+            { label: 'TITLE', value: movie.title },
+            { label: 'GENRES', value: movie.genres ? movie.genres.join(', ') : 'N/A' },
+            { label: 'RATING', value: movie.rating || 'No rating available' },
+            { label: 'DIRECTOR', value: movie.director || 'Unknown' },
+            { label: 'STARRING', value: movie.stars || 'N/A' }
+        ];
+
+        details.forEach(detail => {
+            const labelStr = `  ${detail.label}: `;
+            const valueStr = detail.value.toString();
+            const availableWidth = cardWidth - labelStr.length;
+            const truncatedValue = valueStr.length > availableWidth ? valueStr.slice(0, availableWidth - 3) + '...' : valueStr;
+            const fullLine = (labelStr + truncatedValue).padEnd(cardWidth);
+            console.log(chalk.cyan('│') + chalk.yellow(labelStr) + chalk.white(truncatedValue.padEnd(availableWidth)) + chalk.cyan('│'));
+        });
+
+        console.log(chalk.cyan('│') + ' '.repeat(cardWidth) + chalk.cyan('│'));
+        console.log(chalk.cyan('│') + chalk.yellow('  SYNOPSIS:'.padEnd(cardWidth)) + chalk.cyan('│'));
+        
+        let synopsisLines = 0;
+        const words = movie.synopsis.split(' ');
+        let line = '  ';
+        words.forEach(word => {
+            if ((line + word).length > (cardWidth - 4)) {
+                console.log(chalk.cyan('│') + chalk.white(line.padEnd(cardWidth)) + chalk.cyan('│'));
+                line = '  ' + word + ' ';
+                synopsisLines++;
+            } else {
+                line += word + ' ';
+            }
+        });
+        console.log(chalk.cyan('│') + chalk.white(line.padEnd(cardWidth)) + chalk.cyan('│'));
+        synopsisLines++;
+
+        // Fill remaining space to match poster height (30 lines)
+        // Header(2) + Details(5) + Spacer(1) + SynopsisHeader(1) + SynopsisLines
+        const usedLines = 2 + details.length + 1 + 1 + synopsisLines;
+        for (let i = 0; i < (30 - usedLines); i++) {
+            console.log(chalk.cyan('│') + ' '.repeat(cardWidth) + chalk.cyan('│'));
+        }
+        console.log(chalk.cyan(`└${'─'.repeat(cardWidth)}┘\n`));
     } else {
-        for(let i=0; i<30; i++) console.log(' '.repeat(cardWidth));
-        console.log('');
+        // Render the "Front" (Poster)
+        console.log(chalk.blue(`┌${'─'.repeat(cardWidth)}┐`));
+        if (asciiPoster) {
+            console.log(asciiPoster.split('\n').map(line => chalk.blue('│') + line + chalk.blue('│')).join('\n'));
+        } else {
+            for(let i=0; i<30; i++) console.log(chalk.blue('│') + ' '.repeat(cardWidth) + chalk.blue('│'));
+        }
+        console.log(chalk.blue(`└${'─'.repeat(cardWidth)}┘\n`));
     }
 
-    // Movie Card UI
+    // Movie Card UI (Bottom)
     console.log(chalk.white(`┌${'─'.repeat(cardWidth)}┐`));
     const titleLine = `  ${movie.title}`.padEnd(cardWidth);
     console.log(chalk.white('│') + chalk.bgBlue.bold.white(titleLine) + chalk.white('│'));
@@ -282,22 +335,13 @@ function renderSwipe() {
         console.log(chalk.white(`├${'─'.repeat(cardWidth)}┤`));
     }
     
-    // Wrap synopsis text
-    const words = movie.synopsis.split(' ');
-    let line = '  ';
-    words.forEach(word => {
-        if ((line + word).length > (cardWidth - 4)) {
-            console.log(chalk.white('│') + chalk.white(line.padEnd(cardWidth)) + chalk.white('│'));
-            line = '  ' + word + ' ';
-        } else {
-            line += word + ' ';
-        }
-    });
-    console.log(chalk.white('│') + chalk.white(line.padEnd(cardWidth)) + chalk.white('│'));
+    // Synopsis snippet (always shown at bottom)
+    const synopsisSnippet = movie.synopsis.slice(0, cardWidth - 5) + '...';
+    console.log(chalk.white('│') + chalk.white(`  ${synopsisSnippet.padEnd(cardWidth - 2)}`) + chalk.white('│'));
     console.log(chalk.white(`└${'─'.repeat(cardWidth)}┘`));
     
-    console.log('\n' + chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (DISLIKE)'));
-    console.log(chalk.gray('\nPress Ctrl+C to exit'));
+    console.log('\n' + chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (PASS)'));
+    console.log(chalk.cyan('  [I] Flip Card (INFO)      ') + chalk.gray(' Press Ctrl+C to exit'));
 }
 
 process.stdin.on('keypress', (str, key) => {
@@ -312,11 +356,14 @@ process.stdin.on('keypress', (str, key) => {
     } else if (appState === 'SWIPING') {
         const isRight = key && (key.name === 'right' || key.name === 'd');
         const isLeft = key && (key.name === 'left' || key.name === 'a');
+        const isInfo = key && (key.name === 'i');
 
         if (isRight) {
             handleSwipe(true);
         } else if (isLeft) {
             handleSwipe(false);
+        } else if (isInfo) {
+            playFlipAnimation();
         }
     } else if (appState === 'TRANSITION') {
         startUserTurn();
@@ -324,6 +371,48 @@ process.stdin.on('keypress', (str, key) => {
         handleRematchInput(key);
     }
 });
+
+async function playFlipAnimation() {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    const widths = [60, 45, 30, 15, 2, 15, 30, 45, 60];
+    const midPoint = 4; // Index where it's thinnest
+    
+    for (let i = 0; i < widths.length; i++) {
+        clearScreen();
+        showHeader();
+        
+        // Maintain vertical position of the Turn Info header
+        const user = users[currentUserIndex];
+        const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
+        console.log(chalk.magenta(`┌${'─'.repeat(60)}┐`));
+        console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(58)) + chalk.magenta(' │'));
+        console.log(chalk.magenta(`└${'─'.repeat(60)}┘\n`));
+
+        const w = widths[i];
+        const padding = Math.floor((60 - w) / 2);
+        const padStr = ' '.repeat(padding);
+        const color = isFlipped ? chalk.cyan : chalk.white; // Color based on current state
+
+        // Draw the shrinking/expanding "card" frame
+        console.log(padStr + color(`┌${'─'.repeat(w)}┐`));
+        for (let j = 0; j < 30; j++) {
+            console.log(padStr + color('│') + ' '.repeat(w) + color('│'));
+        }
+        console.log(padStr + color(`└${'─'.repeat(w)}┘`));
+
+        // Flip the state exactly when the card is at its thinnest
+        if (i === midPoint) {
+            isFlipped = !isFlipped;
+        }
+        
+        await new Promise(r => setTimeout(r, 40));
+    }
+    
+    isAnimating = false;
+    renderSwipe();
+}
 
 async function playSwipeAnimation(liked) {
     clearScreen();
@@ -359,6 +448,7 @@ async function handleSwipe(liked) {
 
     currentMovieIndex++;
     isAnimating = false;
+    isFlipped = false;
 
     if (currentMovieIndex >= SWIPES_PER_USER) {
         userChoices[users[currentUserIndex]] = userLikes;

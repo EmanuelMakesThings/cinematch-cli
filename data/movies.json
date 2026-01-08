@@ -5,7 +5,10 @@
     "posterUrl": "https://www.impawards.com/1994/posters/shawshank_redemption_ver1.jpg",
     "genres": [
       "Drama"
-    ]
+    ],
+    "rating": "9.3/10",
+    "director": "Frank Darabont",
+    "stars": "Tim Robbins, Morgan Freeman"
   },
   {
     "title": "The Godfather",
@@ -14,7 +17,10 @@
     "genres": [
       "Crime",
       "Drama"
-    ]
+    ],
+    "rating": "9.2/10",
+    "director": "Francis Ford Coppola",
+    "stars": "Marlon Brando, Al Pacino"
   },
   {
     "title": "The Dark Knight",
@@ -24,7 +30,10 @@
       "Action",
       "Crime",
       "Drama"
-    ]
+    ],
+    "rating": "9.0/10",
+    "director": "Christopher Nolan",
+    "stars": "Christian Bale, Heath Ledger"
   },
   {
     "title": "Pulp Fiction",
@@ -33,7 +42,10 @@
     "genres": [
       "Crime",
       "Drama"
-    ]
+    ],
+    "rating": "8.9/10",
+    "director": "Quentin Tarantino",
+    "stars": "John Travolta, Uma Thurman"
   },
   {
     "title": "Inception",
@@ -43,7 +55,10 @@
       "Sci-Fi",
       "Action",
       "Adventure"
-    ]
+    ],
+    "rating": "8.8/10",
+    "director": "Christopher Nolan",
+    "stars": "Leonardo DiCaprio, Joseph Gordon-Levitt"
   },
   {
     "title": "The Matrix",

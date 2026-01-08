@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-01-07
+
+### Added
+- **Info Flip Feature:** Added ability to "flip" the movie card by pressing `[I]`, revealing additional metadata like Director, Starring Cast, Rating, and an expanded synopsis.
+- **Enhanced Data:** Updated `movies.json` with detailed metadata for top titles to support the new deep-dive view.
+
 ## [1.7.0] - 2026-01-07
 
 ### Added
