@@ -24,15 +24,6 @@ Created by **Jonah Cecil**.
 - **Dynamic User Decks:** To keep the experience fresh, the second person and onwards now see two movies that are different from the first person's deck.
 - **Balanced Matching:** Even with deck variation, users still share 80% of the same movies, ensuring "Perfect Matches" remain frequent and rewarding.
 
-## What's New in v1.8.2
-- **Shared Movie Decks:** Users now swipe on the same set of movies during a session, making it much easier to find a "Perfect Match."
-- **One-Time Poster Loading:** Posters are now fetched and cached once per session, significantly speeding up transitions between user turns.
-- **Network Robustness:** Added an automatic retry mechanism with exponential backoff for poster fetching, reducing "Image Not Found" errors on unstable connections.
-
-## What's New in v1.8.1
-- **Enhanced Stability:** Added robust error handling for data loading and synopsis processing to prevent crashes.
-- **Improved Performance:** Implemented batched poster fetching and a more uniform random shuffle algorithm for a smoother user experience.
-- **Clean Architecture:** Refactored magic numbers into configurable constants and improved overall code maintainability.
 
 ## What's New in v1.8.0
 - **Info Flip (Deep Dive):** Press `[I]` while swiping to "flip" the movie card and reveal deep-dive details like the Director, Starring Cast, IMDB Rating, and a full synopsis.
