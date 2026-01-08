@@ -21,6 +21,7 @@ let userLikes = [];
 let sessionMovies = [];
 let posterCache = {}; // Cache ASCII art
 let postersLoading = false;
+let isAnimating = false; // Prevent input during animations
 let appState = 'SETUP'; // SETUP, GENRE_SELECT, SWIPING, TRANSITION, RESULTS
 let attemptCount = 0; // Track consecutive fails for 2 users
 
@@ -46,7 +47,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.5.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.6.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -287,6 +288,8 @@ process.stdin.on('keypress', (str, key) => {
         process.exit();
     }
 
+    if (isAnimating) return;
+
     if (appState === 'GENRE_SELECT') {
         handleGenreInput(key);
     } else if (appState === 'SWIPING') {
@@ -305,13 +308,40 @@ process.stdin.on('keypress', (str, key) => {
     }
 });
 
-function handleSwipe(liked) {
+async function playSwipeAnimation(liked) {
+    clearScreen();
+    showHeader();
+    
+    // Header padding (to match magenta box)
+    console.log('\n'.repeat(4));
+    
+    // Poster padding (reduced from 25 to move text up)
+    for(let i=0; i<15; i++) console.log('');
+    console.log('');
+
+    const text = liked ? 'LIKE' : 'PASS';
+    const color = liked ? chalk.green.bold : chalk.red.bold;
+    const ascii = figlet.textSync(text, { font: 'Small' });
+    
+    console.log(color(ascii));
+    console.log('\n'.repeat(10));
+    
+    await new Promise(r => setTimeout(r, 400));
+}
+
+async function handleSwipe(liked) {
+    if (isAnimating) return;
+    isAnimating = true;
+
     const movie = sessionMovies[currentMovieIndex];
     if (liked) {
         userLikes.push(movie.title);
     }
 
+    await playSwipeAnimation(liked);
+
     currentMovieIndex++;
+    isAnimating = false;
 
     if (currentMovieIndex >= SWIPES_PER_USER) {
         userChoices[users[currentUserIndex]] = userLikes;

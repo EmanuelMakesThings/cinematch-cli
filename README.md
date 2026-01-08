@@ -1,7 +1,7 @@
 
 <img width="516" height="153" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/283b97e4-6f57-4a95-ba6a-81ad4fe48be1" />
 
-# Cinematch CLI v1.5.0
+# Cinematch CLI v1.6.0
 
 
 
@@ -27,35 +27,17 @@ Created by **Jonah Cecil**.
 
 
 
-## What's New in v1.5.0
+## What's New in v1.6.0
 
+- **Visual Swipe Feedback:** Swiping right now triggers a satisfying green "LIKE" animation, while swiping left shows a red "PASS" feedback screen.
 
-
-
-
-
-
-
-
-- **Quick Rematch:** Finished a round but want more? You can now trigger a "Rematch" immediately. This skips all setup and starts a fresh game with 10 random movies for the same group of users.
-
-
-
-
-
-
-
-
-
-- **The "Angry Pick" (for 2 Users):** If a pair fails to find a match after 3 consecutive attempts, the app will play an angry animation and force a random movie choice on them. No more arguing!
+- **Improved Flow & Rematches:** Trigger a "Rematch" immediately after any round to start a fresh game. We've also added an "Angry Pick" feature—if pairs fail to match 3 times in a row, the app loses its patience and picks for you!
 
 
 
 ## Major Features
 
 - **Tie-Breaker Roulette:** If a group of 3+ users cannot find a unanimous "Perfect Match," the app automatically enters a high-stakes animated roulette to choose between the top 3 most popular movies.
-
-- **Interactive Genre Filtering:** A multi-select menu allows groups to choose exactly what kind of movie night they want (Action, Comedy, etc.), with smart backfilling to ensure a full deck.
 
 
 
