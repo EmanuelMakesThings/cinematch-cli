@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.2] - 2026-01-07
+### Changed
+- Refactored swiping logic to use a single "session deck" for all users, increasing match probability.
+- Optimized poster fetching to happen once per session instead of per user turn.
+
+### Added
+- Automatic retry mechanism (up to 2 retries) with backoff for poster fetching to improve network reliability.
+
 ## [1.8.1] - 2026-01-07
 ### Added
 - Robust `try/catch` block for `movies.json` loading to prevent crashes on malformed files.

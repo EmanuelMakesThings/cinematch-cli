@@ -69,7 +69,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.8.1 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.8.2 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -189,8 +189,7 @@ function finalizeGenreSelection() {
     
     // Slight delay to read the message
     setTimeout(() => {
-        appState = 'SWIPING';
-        startUserTurn();
+        initializeSession();
     }, 1500);
 }
 
@@ -199,23 +198,15 @@ function getRandomMovies(count) {
     return shuffled.slice(0, count);
 }
 
-async function startUserTurn() {
-    if (currentUserIndex >= users.length) {
-        appState = 'RESULTS';
-        showResults();
-        return;
-    }
-
-    currentMovieIndex = 0;
-    userLikes = [];
+async function initializeSession() {
     sessionMovies = getRandomMovies(SWIPES_PER_USER);
-    posterCache = {}; 
+    posterCache = {};
     postersLoading = true;
     appState = 'LOADING';
 
     renderLoading();
 
-    // Fetch posters in batches
+    // Fetch posters in batches for the entire session
     for (let i = 0; i < sessionMovies.length; i += POSTER_FETCH_BATCH_SIZE) {
         const batch = sessionMovies.slice(i, i + POSTER_FETCH_BATCH_SIZE);
         await Promise.all(batch.map(async (movie) => {
@@ -230,7 +221,20 @@ async function startUserTurn() {
     }
     
     postersLoading = false;
+    startUserTurn();
+}
+
+async function startUserTurn() {
+    if (currentUserIndex >= users.length) {
+        appState = 'RESULTS';
+        showResults();
+        return;
+    }
+
+    currentMovieIndex = 0;
+    userLikes = [];
     appState = 'SWIPING';
+    
     renderSwipe();
 }
 
@@ -735,10 +739,9 @@ function handleRematchInput(key) {
             userChoices[user] = [];
         }
         
-        // Skip setup/genres, use all movies, and start immediately
+        // Skip setup/genres, use all movies, and start immediately with a NEW session
         filteredMovies = [...movies];
-        appState = 'SWIPING';
-        startUserTurn();
+        initializeSession();
     } else if (key.name === 'q') {
         process.exit();
     }
