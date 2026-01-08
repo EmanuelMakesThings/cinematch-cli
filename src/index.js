@@ -42,6 +42,7 @@ let currentUserIndex = 0;
 let currentMovieIndex = 0;
 let userLikes = [];
 let sessionMovies = [];
+let sessionVariation = 2;
 let posterCache = {}; // Cache ASCII art
 let postersLoading = false;
 let isAnimating = false; // Prevent input during animations
@@ -69,9 +70,11 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.8.3 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.9.0 | Created by Jonah Cecil       `));
     console.log('');
 }
+
+let consecutiveFailures = 0; // Track failures across sessions for adaptive logic
 
 function getUniqueGenres() {
     const genres = new Set();
@@ -195,13 +198,27 @@ function finalizeGenreSelection() {
 }
 
 function getRandomMovies(count) {
-    const shuffled = shuffle([...filteredMovies]);
-    return shuffled.slice(0, count);
+    let pool = [...filteredMovies];
+    
+    // Bias toward crowd-pleasers if failing to match
+    if (consecutiveFailures > 0) {
+        const crowdPleasers = pool.filter(m => m.isCrowdPleaser);
+        const others = pool.filter(m => !m.isCrowdPleaser);
+        // Mix them, but put crowd pleasers first
+        pool = [...shuffle(crowdPleasers), ...shuffle(others)];
+    } else {
+        pool = shuffle(pool);
+    }
+    
+    return pool.slice(0, count);
 }
 
 async function initializeSession() {
-    // We fetch 2 extra movies so the first person and subsequent people see different decks
-    sessionMovies = getRandomMovies(SWIPES_PER_USER + 2);
+    // Adaptive logic: reduce variation if failing
+    sessionVariation = Math.max(0, 2 - consecutiveFailures);
+    const poolSize = SWIPES_PER_USER + sessionVariation;
+    
+    sessionMovies = getRandomMovies(poolSize);
     posterCache = {};
     postersLoading = true;
     appState = 'LOADING';
@@ -281,8 +298,8 @@ function renderSwipe() {
     showHeader();
     
     const user = users[currentUserIndex];
-    // Person 1 sees movies 0-9, Person 2+ sees movies 2-11
-    const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + 2;
+    // Person 1 sees movies 0-9, Person 2+ sees offset deck
+    const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + sessionVariation;
     const movie = sessionMovies[movieIdx];
     const asciiPoster = posterCache[movieIdx];
     const synopsis = movie.synopsis || '';
@@ -414,7 +431,7 @@ async function playFlipAnimation() {
         
         // Maintain vertical position of the Turn Info header
         const user = users[currentUserIndex];
-        const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + 2;
+        const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + sessionVariation;
         const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
         console.log(chalk.magenta(`┌${'─'.repeat(CARD_WIDTH)}┐`));
         console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(CARD_WIDTH - 2)) + chalk.magenta(' │'));
@@ -469,7 +486,7 @@ async function handleSwipe(liked) {
     if (isAnimating) return;
     isAnimating = true;
 
-    const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + 2;
+    const movieIdx = (currentUserIndex === 0) ? currentMovieIndex : currentMovieIndex + sessionVariation;
     const movie = sessionMovies[movieIdx];
     if (liked) {
         userLikes.push(movie.title);
@@ -528,8 +545,10 @@ async function showResults() {
 
     if (perfectMatches.length > 0 || commonMatches.length > 0) {
         attemptCount = 0; // Reset on any success
+        consecutiveFailures = 0;
     } else {
         attemptCount++;
+        consecutiveFailures++;
     }
 
     if (users.length === 2 && attemptCount >= 3 && perfectMatches.length === 0 && commonMatches.length === 0) {
@@ -604,6 +623,7 @@ async function showResults() {
     console.log(chalk.magenta(`║ `) + chalk.italic.white(creditText.padStart(outerWidth - 2)) + chalk.magenta(` ║`));
     console.log(chalk.magenta(`╚${'═'.repeat(outerWidth)}╝\n`));
 
+    console.log(chalk.cyan.bold('   📊 Press [S] for a DETAILED SESSION SUMMARY'));
     promptRematch();
 }
 
@@ -730,6 +750,155 @@ async function triggerAngryForcedPick() {
     }, 1500);
 }
 
+async function playSexyAnimation(u1, u2, score) {
+    appState = 'SEXY_ANIMATION';
+    const frames = 30;
+    
+    for (let f = 0; f < frames; f++) {
+        clearScreen();
+        showHeader();
+        
+        console.log(chalk.magenta.bold(figlet.textSync('FREAKY!', { font: 'Slant' })));
+        console.log(chalk.red.bold(`\n   ${u1} and ${u2} are getting freaky tonight baby!`));
+        console.log(chalk.yellow(`   With a massive ${score}% match, it's basically destiny...\n`));
+
+        // Shower/Steam animation
+        const steamChars = ['~', '░', ' ', '.', '`'];
+        const waterChars = ['|', ':', ' ', 'i'];
+        
+        for (let i = 0; i < 12; i++) {
+            let line = '   ';
+            for (let j = 0; j < 40; j++) {
+                if (Math.random() > 0.8) {
+                    const char = (i < 4) ? steamChars[Math.floor(Math.random() * steamChars.length)] : waterChars[Math.floor(Math.random() * waterChars.length)];
+                    const color = (i < 4) ? chalk.white : chalk.blue;
+                    line += color(char);
+                } else {
+                    line += ' ';
+                }
+            }
+            console.log(line);
+        }
+        
+        if (f % 2 === 0) console.log(chalk.red('      🍆   🍑   🍆   🍑   🍆'));
+        else console.log(chalk.red('      🍑   🍆   🍑   🍆   🍑'));
+
+        await new Promise(r => setTimeout(r, 100));
+    }
+    
+    console.log(chalk.gray('\n   Press any key to return to the summary...'));
+    process.stdin.once('data', () => {
+        // Return to summary but mark that we've played the animation
+        showSummary(true); 
+    });
+}
+
+function showSummary(animationPlayed = false) {
+    clearScreen();
+    showHeader();
+    appState = 'SUMMARY';
+
+    console.log(chalk.gray(`─`.repeat(CARD_WIDTH) + '\n'));
+
+    // 1. Who liked what
+    console.log(chalk.yellow.bold('👤 INDIVIDUAL LIKES:'));
+    Object.entries(userChoices).forEach(([user, likes]) => {
+        const likedStr = likes.length > 0 ? likes.join(', ') : chalk.gray('None');
+        console.log(`${chalk.magenta(user)}: ${chalk.white(likedStr)}`);
+    });
+    console.log('');
+
+    const allLikes = Object.values(userChoices);
+    const movieCounts = {};
+    const movieLikers = {};
+
+    allLikes.forEach((likes, idx) => {
+        const userName = users[idx];
+        likes.forEach(title => {
+            movieCounts[title] = (movieCounts[title] || 0) + 1;
+            if (!movieLikers[title]) movieLikers[title] = [];
+            movieLikers[title].push(userName);
+        });
+    });
+
+    // 2. Top 3 near-matches (1-2 votes less than perfect)
+    const nearMatches = Object.keys(movieCounts)
+        .filter(title => movieCounts[title] >= Math.max(2, users.length - 2) && movieCounts[title] < users.length)
+        .sort((a, b) => movieCounts[b] - movieCounts[a])
+        .slice(0, 3);
+
+    console.log(chalk.yellow.bold('🤏 NEAR MATCHES:'));
+    if (nearMatches.length > 0) {
+        nearMatches.forEach(m => {
+            console.log(`${chalk.cyan('• ' + m)} ${chalk.gray(`(${movieCounts[m]}/${users.length} votes)`)}`);
+            console.log(chalk.gray(`  Liked by: ${movieLikers[m].join(', ')}`));
+        });
+    } else {
+        console.log(chalk.gray('  No close calls this time.'));
+    }
+    console.log('');
+
+    // 3. Funniest outlier picks (liked by only 1 person)
+    const outliers = Object.keys(movieCounts)
+        .filter(title => movieCounts[title] === 1);
+    
+    console.log(chalk.yellow.bold('🦄 UNIQUE TASTES (Outliers):'));
+    if (outliers.length > 0) {
+        // Randomly pick up to 3 for brevity
+        shuffle(outliers).slice(0, 3).forEach(m => {
+            console.log(`${chalk.cyan('• ' + m)} ${chalk.gray(`(Only ${movieLikers[m][0]} liked this)`)}`);
+        });
+    } else {
+        console.log(chalk.gray('  Everyone agreed on everything? Rare!'));
+    }
+    console.log('');
+
+    // 4. Compatibility Score (Jaccard Similarity between pairs if possible)
+    console.log(chalk.yellow.bold('🤝 COMPATIBILITY SCORE:'));
+    let freakyPair = null;
+    let freakyScore = 0;
+
+    if (users.length >= 2) {
+        for (let i = 0; i < users.length; i++) {
+            for (let j = i + 1; j < users.length; j++) {
+                const setA = new Set(userChoices[users[i]]);
+                const setB = new Set(userChoices[users[j]]);
+                const intersection = new Set([...setA].filter(x => setB.has(x)));
+                const union = new Set([...setA, ...setB]);
+                
+                let score = 0;
+                if (union.size > 0) {
+                    score = Math.round((intersection.size / union.size) * 100);
+                }
+                
+                let verdict = 'Neutral';
+                if (score > 95) {
+                    verdict = 'GETTING FREAKY';
+                    freakyPair = [users[i], users[j]];
+                    freakyScore = score;
+                }
+                else if (score > 70) verdict = 'Perfect Harmony';
+                else if (score > 40) verdict = 'Good Vibes';
+                else if (score < 15) verdict = 'Total Opposites';
+
+                console.log(`${chalk.magenta(users[i])} + ${chalk.magenta(users[j])}: ${chalk.green.bold(score + '%')} ${chalk.gray(`(${verdict})`)}`);
+            }
+        }
+    } else {
+        console.log(chalk.gray('  Need at least 2 people for a compatibility score!'));
+    }
+
+    console.log('\n' + chalk.gray('─'.repeat(CARD_WIDTH)));
+
+    if (freakyPair && !animationPlayed) {
+        setTimeout(() => {
+            playSexyAnimation(freakyPair[0], freakyPair[1], freakyScore);
+        }, 1500);
+    } else {
+        promptRematch();
+    }
+}
+
 function promptRematch() {
     appState = 'REMATCH_PROMPT';
     console.log(chalk.cyan.bold('   🔄 Press [R] for a REMATCH (Same users, random movies)'));
@@ -745,9 +914,10 @@ function handleRematchInput(key) {
             userChoices[user] = [];
         }
         
-        // Skip setup/genres, use all movies, and start immediately with a NEW session
-        filteredMovies = [...movies];
+        // Use all movies if we were in genre selection, otherwise keep filter
         initializeSession();
+    } else if (key.name === 's') {
+        showSummary();
     } else if (key.name === 'q') {
         process.exit();
     }

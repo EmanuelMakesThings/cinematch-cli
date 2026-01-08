@@ -917,5 +917,101 @@
       "Comedy",
       "Fantasy"
     ]
+  },
+  {
+    "title": "Poor Things",
+    "synopsis": "The incredible tale and fantastical evolution of Bella Baxter, a young woman brought back to life by the brilliant and unorthodox scientist Dr. Godwin Baxter.",
+    "posterUrl": "https://www.impawards.com/2023/posters/poor_things_ver3.jpg",
+    "genres": ["Comedy", "Drama", "Romance"],
+    "rating": "8.0/10",
+    "director": "Yorgos Lanthimos",
+    "stars": "Emma Stone, Mark Ruffalo"
+  },
+  {
+    "title": "Killers of the Flower Moon",
+    "synopsis": "When oil is discovered in 1920s Oklahoma under Osage Nation land, the Osage people are murdered one by one until the FBI steps in to unravel the mystery.",
+    "posterUrl": "https://www.impawards.com/2023/posters/killers_of_the_flower_moon_ver3.jpg",
+    "genres": ["Crime", "Drama", "History"],
+    "rating": "7.6/10",
+    "director": "Martin Scorsese",
+    "stars": "Leonardo DiCaprio, Robert De Niro"
+  },
+  {
+    "title": "Spider-Man: Across the Spider-Verse",
+    "synopsis": "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.",
+    "posterUrl": "https://www.impawards.com/2023/posters/spiderman_across_the_spiderverse_ver2.jpg",
+    "genres": ["Animation", "Action", "Adventure"],
+    "rating": "8.6/10",
+    "director": "Joaquim Dos Santos",
+    "stars": "Shameik Moore, Hailee Steinfeld",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "John Wick",
+    "synopsis": "An ex-hit-man comes out of retirement to track down the gangsters that killed his dog and took everything from him.",
+    "posterUrl": "https://www.impawards.com/2014/posters/john_wick.jpg",
+    "genres": ["Action", "Crime", "Thriller"],
+    "rating": "7.4/10",
+    "director": "Chad Stahelski",
+    "stars": "Keanu Reeves, Michael Nyqvist",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Past Lives",
+    "synopsis": "Nora and Hae Sung, two deeply connected childhood friends, are wrest apart after Nora's family emigrates from South Korea. Twenty years later, they are reunited for one fateful week.",
+    "posterUrl": "https://www.impawards.com/2023/posters/past_lives.jpg",
+    "genres": ["Drama", "Romance"],
+    "rating": "7.9/10",
+    "director": "Celine Song",
+    "stars": "Greta Lee, Teo Yoo"
+  },
+  {
+    "title": "The Holdovers",
+    "synopsis": "A cranky history teacher at a remote prep school is forced to remain on campus over the holidays with a troubled student who has no place to go.",
+    "posterUrl": "https://www.impawards.com/2023/posters/holdovers.jpg",
+    "genres": ["Comedy", "Drama"],
+    "rating": "7.9/10",
+    "director": "Alexander Payne",
+    "stars": "Paul Giamatti, Da'Vine Joy Randolph"
+  },
+  {
+    "title": "Dune: Part Two",
+    "synopsis": "Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.",
+    "posterUrl": "https://www.impawards.com/2024/posters/dune_part_two_ver3.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "8.6/10",
+    "director": "Denis Villeneuve",
+    "stars": "Timothée Chalamet, Zendaya",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Inside Out",
+    "synopsis": "After young Riley is uprooted from her Midwest life and moved to San Francisco, her emotions - Joy, Fear, Anger, Disgust and Sadness - conflict on how best to navigate a new city, house and school.",
+    "posterUrl": "https://www.impawards.com/2015/posters/inside_out.jpg",
+    "genres": ["Animation", "Adventure", "Comedy"],
+    "rating": "8.1/10",
+    "director": "Pete Docter",
+    "stars": "Amy Poehler, Bill Hader",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "The Social Network",
+    "synopsis": "As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins who claimed he stole their idea, and by the co-founder who was later squeezed out of the business.",
+    "posterUrl": "https://www.impawards.com/2010/posters/social_network.jpg",
+    "genres": ["Biography", "Drama"],
+    "rating": "7.8/10",
+    "director": "David Fincher",
+    "stars": "Jesse Eisenberg, Andrew Garfield",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Blade Runner",
+    "synopsis": "A blade runner must pursue and terminate four replicants who stole a ship in space and have returned to Earth to find their creator.",
+    "posterUrl": "https://www.impawards.com/1982/posters/blade_runner.jpg",
+    "genres": ["Action", "Drama", "Sci-Fi"],
+    "rating": "8.1/10",
+    "director": "Ridley Scott",
+    "stars": "Harrison Ford, Rutger Hauer",
+    "isCrowdPleaser": true
   }
 ]

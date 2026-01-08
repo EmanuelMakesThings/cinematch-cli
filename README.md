@@ -1,7 +1,7 @@
 <img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
 
 
-# Cinematch CLI v1.8.3
+# Cinematch CLI v1.9.0
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
@@ -13,6 +13,12 @@ Created by **Jonah Cecil**.
 
 
 
+
+## What's New in v1.9.0
+- **Deep Session Summary:** After the matches are revealed, press `[S]` to see a full breakdown of the session, including who liked what and how compatible your tastes were!
+- **Smart Adaptive Decks:** If your group is having trouble deciding, Cinematch now automatically adjusts. It will show more of the same movies to everyone and prioritize highly-rated "crowd-pleasers" to help find common ground.
+- **Enhanced Data Metrics:** The summary view now calculates a **Compatibility Score** between users based on their shared interests.
+- **10 New Movies:** Fresh hits like *Dune: Part Two*, *Spider-Man: Across the Spider-Verse*, and *Poor Things* have been added to the database.
 
 ## What's New in v1.8.3
 - **Dynamic User Decks:** To keep the experience fresh, the second person and onwards now see two movies that are different from the first person's deck.

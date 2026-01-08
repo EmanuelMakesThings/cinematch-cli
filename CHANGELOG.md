@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2026-01-07
+### Added
+- **Detailed Session Summary:** New feature accessible via `[S]` after a round. Shows individual likes, "Near Matches" (close calls), "Unique Tastes" (outlier picks), and a "Compatibility Score" between users.
+- **Adaptive Matching Logic:** The app now learns from the group! If you fail to find matches, it automatically increases movie overlap, reduces variation, and biases the deck toward "crowd-pleaser" titles to help you reach a decision.
+- **Expanded Library:** Added 10 new high-quality movies with verified posters, including 2023-2024 hits like *Dune: Part Two*, *Poor Things*, and *Spider-Man: Across the Spider-Verse*.
+
+### Changed
+- Replaced 404/broken poster URLs for several classic titles with high-quality alternatives.
+- Refined the "Summary" view to prioritize data and compatibility metrics.
+
 ## [1.8.3] - 2026-01-07
 ### Changed
 - Introduced per-user movie variation: The second person and onwards now see a slightly different set of movies (2 different titles) than the first person to keep things fresh.
