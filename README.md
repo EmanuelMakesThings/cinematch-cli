@@ -35,12 +35,8 @@ Created by **Jonah Cecil**.
 - **Dynamic User Decks:** To keep the experience fresh, the second person and onwards now see two movies that are different from the first person's deck.
 - **Balanced Matching:** Even with deck variation, users still share 80% of the same movies, ensuring "Perfect Matches" remain frequent and rewarding.
 
-
-## What's New in v1.8.0
-- **Info Flip (Deep Dive):** Press `[I]` while swiping to "flip" the movie card and reveal deep-dive details like the Director, Starring Cast, IMDB Rating, and a full synopsis.
-- **Match Celebration:** Finding a "Perfect Match" now triggers a vibrant, full-screen ASCII confetti animation. Celebrate your group's unanimous decision in style!
-
 ## Major Features
+- **Info Flip (Deep Dive):** Press `[I]` while swiping to "flip" the movie card and reveal deep-dive details like the Director, Starring Cast, IMDB Rating, and a full synopsis.
 - **Tie-Breaker Roulette:** If a group of 3+ users cannot find a unanimous "Perfect Match," the app automatically enters a high-stakes animated roulette to choose between the top 3 most popular movies.
 - **Quick Rematch:** Finished a round but want more? You can trigger a "Rematch" immediately after any round to start a fresh game.
 
