@@ -1,7 +1,7 @@
 <img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
 
 
-# Cinematch CLI v1.8.0
+# Cinematch CLI v1.8.1
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
@@ -13,6 +13,11 @@ Created by **Jonah Cecil**.
 
 
 
+
+## What's New in v1.8.1
+- **Enhanced Stability:** Added robust error handling for data loading and synopsis processing to prevent crashes.
+- **Improved Performance:** Implemented batched poster fetching and a more uniform random shuffle algorithm for a smoother user experience.
+- **Clean Architecture:** Refactored magic numbers into configurable constants and improved overall code maintainability.
 
 ## What's New in v1.8.0
 - **Info Flip (Deep Dive):** Press `[I]` while swiping to "flip" the movie card and reveal deep-dive details like the Director, Starring Cast, IMDB Rating, and a full synopsis.

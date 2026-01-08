@@ -2,8 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.8.1] - 2026-01-07
+### Added
+- Robust `try/catch` block for `movies.json` loading to prevent crashes on malformed files.
+- Fisher-Yates shuffle algorithm for more uniform random movie selection.
+- Batched poster fetching (5 at a time) with progressive loading indicator to improve network stability.
+- Global constants for layout and configuration (`CARD_WIDTH`, `POSTER_HEIGHT`, etc.).
+- Debug logging in `ascii-converter.js` (enabled via `DEBUG` environment variable).
+
+### Fixed
+- Potential crash when a movie is missing a `synopsis` field.
+- Unused variable `allSelected` in `renderGenreSelect`.
+- Inaccurate random shuffling using `Array.sort()`.
 
 ## [1.8.0] - 2026-01-07
 

@@ -5,10 +5,33 @@ const readline = require('readline');
 const figlet = require('figlet');
 const { getAsciiPoster } = require('./ascii-converter');
 
+// Constants
+const CARD_WIDTH = 60;
+const POSTER_HEIGHT = 30;
+const SWIPES_PER_USER = 10;
+const POSTER_FETCH_BATCH_SIZE = 5;
+
 // Load movies
 const moviesPath = path.join(__dirname, '../data/movies.json');
-const movies = JSON.parse(fs.readFileSync(moviesPath, 'utf8'));
+let movies = [];
+try {
+    const data = fs.readFileSync(moviesPath, 'utf8');
+    movies = JSON.parse(data);
+} catch (error) {
+    console.error(chalk.red(`Fatal Error: Could not load movies from ${moviesPath}.`));
+    console.error(chalk.red(error.message));
+    process.exit(1);
+}
 let filteredMovies = [...movies];
+
+// Fisher-Yates Shuffle
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
 // Setup keypress handling
 readline.emitKeypressEvents(process.stdin);
@@ -31,8 +54,6 @@ let availableGenres = [];
 let selectedGenreIndices = new Set();
 let genreCursor = 0;
 
-const SWIPES_PER_USER = 10;
-
 function clearScreen() {
     process.stdout.write('\x1Bc');
 }
@@ -48,7 +69,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.8.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.8.1 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -114,7 +135,6 @@ function renderGenreSelect() {
         console.log(`${cursor} ${checkbox} ${label}`);
     });
     
-    const allSelected = selectedGenreIndices.size === 0;
     console.log(chalk.gray('\n(If no genres are selected, ALL movies will be included)'));
 }
 
@@ -157,7 +177,7 @@ function finalizeGenreSelection() {
             // Get unique movies that are NOT in the current selection
             const existingTitles = new Set(genreMovies.map(m => m.title));
             const otherMovies = movies.filter(m => !existingTitles.has(m.title));
-            const shuffledOthers = [...otherMovies].sort(() => 0.5 - Math.random());
+            const shuffledOthers = shuffle([...otherMovies]);
             const needed = SWIPES_PER_USER - genreMovies.length;
             
             filteredMovies = [...genreMovies, ...shuffledOthers.slice(0, needed)];
@@ -175,7 +195,7 @@ function finalizeGenreSelection() {
 }
 
 function getRandomMovies(count) {
-    const shuffled = [...filteredMovies].sort(() => 0.5 - Math.random());
+    const shuffled = shuffle([...filteredMovies]);
     return shuffled.slice(0, count);
 }
 
@@ -195,17 +215,19 @@ async function startUserTurn() {
 
     renderLoading();
 
-    // Fetch all posters for this turn
-    const fetchPromises = sessionMovies.map(async (movie, index) => {
-        if (movie.posterUrl) {
-            const ascii = await getAsciiPoster(movie.posterUrl, 60);
-            if (ascii) {
-                posterCache[index] = ascii;
+    // Fetch posters in batches
+    for (let i = 0; i < sessionMovies.length; i += POSTER_FETCH_BATCH_SIZE) {
+        const batch = sessionMovies.slice(i, i + POSTER_FETCH_BATCH_SIZE);
+        await Promise.all(batch.map(async (movie) => {
+            const movieIdx = sessionMovies.indexOf(movie);
+            if (movie.posterUrl) {
+                const ascii = await getAsciiPoster(movie.posterUrl, CARD_WIDTH, POSTER_HEIGHT);
+                if (ascii) {
+                    posterCache[movieIdx] = ascii;
+                }
             }
-        }
-    });
-
-    await Promise.all(fetchPromises);
+        }));
+    }
     
     postersLoading = false;
     appState = 'SWIPING';
@@ -255,19 +277,18 @@ function renderSwipe() {
     const user = users[currentUserIndex];
     const movie = sessionMovies[currentMovieIndex];
     const asciiPoster = posterCache[currentMovieIndex];
-    
-    const cardWidth = 60;
+    const synopsis = movie.synopsis || '';
     
     const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
-    console.log(chalk.magenta(`┌${'─'.repeat(cardWidth)}┐`));
-    console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(cardWidth - 2)) + chalk.magenta(' │'));
-    console.log(chalk.magenta(`└${'─'.repeat(cardWidth)}┘\n`));
+    console.log(chalk.magenta(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+    console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(CARD_WIDTH - 2)) + chalk.magenta(' │'));
+    console.log(chalk.magenta(`└${'─'.repeat(CARD_WIDTH)}┘\n`));
     
     if (isFlipped) {
         // Render the "Back" of the card
-        console.log(chalk.cyan(`┌${'─'.repeat(cardWidth)}┐`));
-        console.log(chalk.cyan('│') + chalk.bold.white('   MOVIE DETAILS'.padEnd(cardWidth)) + chalk.cyan('│'));
-        console.log(chalk.cyan(`├${'─'.repeat(cardWidth)}┤`));
+        console.log(chalk.cyan(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+        console.log(chalk.cyan('│') + chalk.bold.white('   MOVIE DETAILS'.padEnd(CARD_WIDTH)) + chalk.cyan('│'));
+        console.log(chalk.cyan(`├${'─'.repeat(CARD_WIDTH)}┤`));
         
         const details = [
             { label: 'TITLE', value: movie.title },
@@ -280,65 +301,65 @@ function renderSwipe() {
         details.forEach(detail => {
             const labelStr = `  ${detail.label}: `;
             const valueStr = detail.value.toString();
-            const availableWidth = cardWidth - labelStr.length;
+            const availableWidth = CARD_WIDTH - labelStr.length;
             const truncatedValue = valueStr.length > availableWidth ? valueStr.slice(0, availableWidth - 3) + '...' : valueStr;
-            const fullLine = (labelStr + truncatedValue).padEnd(cardWidth);
+            const fullLine = (labelStr + truncatedValue).padEnd(CARD_WIDTH);
             console.log(chalk.cyan('│') + chalk.yellow(labelStr) + chalk.white(truncatedValue.padEnd(availableWidth)) + chalk.cyan('│'));
         });
 
-        console.log(chalk.cyan('│') + ' '.repeat(cardWidth) + chalk.cyan('│'));
-        console.log(chalk.cyan('│') + chalk.yellow('  SYNOPSIS:'.padEnd(cardWidth)) + chalk.cyan('│'));
+        console.log(chalk.cyan('│') + ' '.repeat(CARD_WIDTH) + chalk.cyan('│'));
+        console.log(chalk.cyan('│') + chalk.yellow('  SYNOPSIS:'.padEnd(CARD_WIDTH)) + chalk.cyan('│'));
         
         let synopsisLines = 0;
-        const words = movie.synopsis.split(' ');
+        const words = synopsis.split(' ');
         let line = '  ';
         words.forEach(word => {
-            if ((line + word).length > (cardWidth - 4)) {
-                console.log(chalk.cyan('│') + chalk.white(line.padEnd(cardWidth)) + chalk.cyan('│'));
+            if ((line + word).length > (CARD_WIDTH - 4)) {
+                console.log(chalk.cyan('│') + chalk.white(line.padEnd(CARD_WIDTH)) + chalk.cyan('│'));
                 line = '  ' + word + ' ';
                 synopsisLines++;
             } else {
                 line += word + ' ';
             }
         });
-        console.log(chalk.cyan('│') + chalk.white(line.padEnd(cardWidth)) + chalk.cyan('│'));
+        console.log(chalk.cyan('│') + chalk.white(line.padEnd(CARD_WIDTH)) + chalk.cyan('│'));
         synopsisLines++;
 
         // Fill remaining space to match poster height (30 lines)
         // Header(2) + Details(5) + Spacer(1) + SynopsisHeader(1) + SynopsisLines
         const usedLines = 2 + details.length + 1 + 1 + synopsisLines;
-        for (let i = 0; i < (30 - usedLines); i++) {
-            console.log(chalk.cyan('│') + ' '.repeat(cardWidth) + chalk.cyan('│'));
+        for (let i = 0; i < (POSTER_HEIGHT - usedLines); i++) {
+            console.log(chalk.cyan('│') + ' '.repeat(CARD_WIDTH) + chalk.cyan('│'));
         }
-        console.log(chalk.cyan(`└${'─'.repeat(cardWidth)}┘\n`));
+        console.log(chalk.cyan(`└${'─'.repeat(CARD_WIDTH)}┘\n`));
     } else {
         // Render the "Front" (Poster)
-        console.log(chalk.blue(`┌${'─'.repeat(cardWidth)}┐`));
+        console.log(chalk.blue(`┌${'─'.repeat(CARD_WIDTH)}┐`));
         if (asciiPoster) {
             console.log(asciiPoster.split('\n').map(line => chalk.blue('│') + line + chalk.blue('│')).join('\n'));
         } else {
-            for(let i=0; i<30; i++) console.log(chalk.blue('│') + ' '.repeat(cardWidth) + chalk.blue('│'));
+            for(let i=0; i<POSTER_HEIGHT; i++) console.log(chalk.blue('│') + ' '.repeat(CARD_WIDTH) + chalk.blue('│'));
         }
-        console.log(chalk.blue(`└${'─'.repeat(cardWidth)}┘\n`));
+        console.log(chalk.blue(`└${'─'.repeat(CARD_WIDTH)}┘\n`));
     }
 
     // Movie Card UI (Bottom)
-    console.log(chalk.white(`┌${'─'.repeat(cardWidth)}┐`));
-    const titleLine = `  ${movie.title}`.padEnd(cardWidth);
+    console.log(chalk.white(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+    const titleLine = `  ${movie.title}`.padEnd(CARD_WIDTH);
     console.log(chalk.white('│') + chalk.bgBlue.bold.white(titleLine) + chalk.white('│'));
-    console.log(chalk.white(`├${'─'.repeat(cardWidth)}┤`));
+    console.log(chalk.white(`├${'─'.repeat(CARD_WIDTH)}┤`));
 
     // Genres Line
     if (movie.genres) {
-        const genreText = `  GENRE: ${movie.genres.join(', ')}`.padEnd(cardWidth);
+        const genreText = `  GENRE: ${movie.genres.join(', ')}`.padEnd(CARD_WIDTH);
         console.log(chalk.white('│') + chalk.yellow(genreText) + chalk.white('│'));
-        console.log(chalk.white(`├${'─'.repeat(cardWidth)}┤`));
+        console.log(chalk.white(`├${'─'.repeat(CARD_WIDTH)}┤`));
     }
     
     // Synopsis snippet (always shown at bottom)
-    const synopsisSnippet = movie.synopsis.slice(0, cardWidth - 5) + '...';
-    console.log(chalk.white('│') + chalk.white(`  ${synopsisSnippet.padEnd(cardWidth - 2)}`) + chalk.white('│'));
-    console.log(chalk.white(`└${'─'.repeat(cardWidth)}┘`));
+    const synopsisSnippet = (synopsis.slice(0, CARD_WIDTH - 5) + (synopsis.length > CARD_WIDTH - 5 ? '...' : '')).padEnd(CARD_WIDTH - 2);
+    console.log(chalk.white('│') + chalk.white(`  ${synopsisSnippet}`) + chalk.white('│'));
+    console.log(chalk.white(`└${'─'.repeat(CARD_WIDTH)}┘`));
     
     console.log('\n' + chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (PASS)'));
     console.log(chalk.cyan('  [I] Flip Card (INFO)      ') + chalk.gray(' Press Ctrl+C to exit'));
@@ -376,7 +397,7 @@ async function playFlipAnimation() {
     if (isAnimating) return;
     isAnimating = true;
 
-    const widths = [60, 45, 30, 15, 2, 15, 30, 45, 60];
+    const widths = [CARD_WIDTH, Math.floor(CARD_WIDTH * 0.75), Math.floor(CARD_WIDTH * 0.5), Math.floor(CARD_WIDTH * 0.25), 2, Math.floor(CARD_WIDTH * 0.25), Math.floor(CARD_WIDTH * 0.5), Math.floor(CARD_WIDTH * 0.75), CARD_WIDTH];
     const midPoint = 4; // Index where it's thinnest
     
     for (let i = 0; i < widths.length; i++) {
@@ -386,18 +407,18 @@ async function playFlipAnimation() {
         // Maintain vertical position of the Turn Info header
         const user = users[currentUserIndex];
         const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${SWIPES_PER_USER}`;
-        console.log(chalk.magenta(`┌${'─'.repeat(60)}┐`));
-        console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(58)) + chalk.magenta(' │'));
-        console.log(chalk.magenta(`└${'─'.repeat(60)}┘\n`));
+        console.log(chalk.magenta(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+        console.log(chalk.magenta('│ ') + chalk.magenta.bold(turnText.padEnd(CARD_WIDTH - 2)) + chalk.magenta(' │'));
+        console.log(chalk.magenta(`└${'─'.repeat(CARD_WIDTH)}┘\n`));
 
         const w = widths[i];
-        const padding = Math.floor((60 - w) / 2);
+        const padding = Math.floor((CARD_WIDTH - w) / 2);
         const padStr = ' '.repeat(padding);
         const color = isFlipped ? chalk.cyan : chalk.white; // Color based on current state
 
         // Draw the shrinking/expanding "card" frame
         console.log(padStr + color(`┌${'─'.repeat(w)}┐`));
-        for (let j = 0; j < 30; j++) {
+        for (let j = 0; j < POSTER_HEIGHT; j++) {
             console.log(padStr + color('│') + ' '.repeat(w) + color('│'));
         }
         console.log(padStr + color(`└${'─'.repeat(w)}┘`));
@@ -519,7 +540,7 @@ async function showResults() {
         'Created by Jonah Cecil'.length
     );
     
-    const outerWidth = Math.max(maxAsciiWidth + 4, 60);
+    const outerWidth = Math.max(maxAsciiWidth + 4, CARD_WIDTH);
 
     // Header Box
     console.log(chalk.yellow(`╔${'═'.repeat(outerWidth)}╗`));
@@ -589,7 +610,7 @@ async function playCelebration() {
         const chars = ['*', '•', '+', '.', 'o'];
         for (let i = 0; i < 10; i++) {
             let line = '   ';
-            for (let j = 0; j < 60; j++) {
+            for (let j = 0; j < CARD_WIDTH; j++) {
                 if (Math.random() > 0.92) {
                     const color = chalk.hsv(Math.random() * 360, 80, 100);
                     line += color(chars[Math.floor(Math.random() * chars.length)]);
