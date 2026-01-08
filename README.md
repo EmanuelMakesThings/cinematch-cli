@@ -1,5 +1,6 @@
 
 <img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
+(1.6.0 stable release)
 
 # Cinematch CLI v1.7.0
 
