@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-01-07
+
+### Added
+- **Match Celebration Animation:** Implemented a colorful "BOOM!" confetti animation that plays when a group finds a unanimous "Perfect Match."
+- **Movie-Themed Loading Messages:** Replaced the generic "Preparing movies" text with a variety of funny, random movie quips (e.g., "Helping Indiana Jones find his hat," "Finding Nemo (again)").
+
 ## [1.6.0] - 2026-01-07
 
 ### Added

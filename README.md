@@ -1,45 +1,27 @@
 
 <img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
 
-# Cinematch CLI v1.6.0
-
-
+# Cinematch CLI v1.7.0
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
-
-
 Created by **Jonah Cecil**.
 
-
-
 <img width="568" height="925" alt="Screenshot 2026-01-07 153457" src="https://github.com/user-attachments/assets/cddfed5f-954f-4dab-b47a-e3eee8020206" />
-
-
 
 <img width="573" height="424" alt="Screenshot 2026-01-07 083320" src="https://github.com/user-attachments/assets/e194ba34-ca3f-44a5-8940-3a5921e4ea1d" />
 
 
 
 
-
-
-
-
-
-## What's New in v1.6.0
-
+## What's New in v1.7.0
+- **Match Celebration:** Finding a "Perfect Match" now triggers a vibrant, full-screen ASCII confetti animation. Celebrate your group's unanimous decision in style!
+- **Dynamic Loading Flavor:** Replaced boring loading text with funny movie-themed messages like "Helping Indiana Jones find his hat" or "Finding Nemo (again)."
 - **Visual Swipe Feedback:** Swiping right now triggers a satisfying green "LIKE" animation, while swiping left shows a red "PASS" feedback screen.
 
-- **Improved Flow & Rematches:** Trigger a "Rematch" immediately after any round to start a fresh game. We've also added an "Angry Pick" feature—if pairs fail to match 3 times in a row, the app loses its patience and picks for you!
-
-
-
 ## Major Features
-
 - **Tie-Breaker Roulette:** If a group of 3+ users cannot find a unanimous "Perfect Match," the app automatically enters a high-stakes animated roulette to choose between the top 3 most popular movies.
-
-
+- **Quick Rematch:** Finished a round but want more? You can trigger a "Rematch" immediately after any round to start a fresh game.
 
 ## Features
 

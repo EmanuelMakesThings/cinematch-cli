@@ -40,7 +40,7 @@ async function getAsciiPoster(url, width = 60) {
             responseType: 'arraybuffer',
             timeout: 5000,
             headers: {
-                'User-Agent': 'Mozilla/5.0 (movieApp-CLI/1.6.0)'
+                'User-Agent': 'Mozilla/5.0 (movieApp-CLI/1.7.0)'
             }
         });
         const image = await Jimp.read(response.data);

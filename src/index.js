@@ -47,7 +47,7 @@ function showHeader() {
         console.log(chalk.cyan(`║  ${l.padEnd(width)}  ║`));
     });
     console.log(chalk.cyan(`╚${border}╝`));
-    console.log(chalk.bold.white(`     v1.6.0 | Created by Jonah Cecil       `));
+    console.log(chalk.bold.white(`     v1.7.0 | Created by Jonah Cecil       `));
     console.log('');
 }
 
@@ -214,7 +214,24 @@ async function startUserTurn() {
 function renderLoading() {
     clearScreen();
     showHeader();
-    console.log(chalk.yellow.bold('\n   📥 Preparing your movie reels...'));
+    
+    const messages = [
+        "Helping Indiana Jones find his hat...",
+        "Getting James Bond out of the shower...",
+        "Feeding the dinosaurs in Jurassic Park...",
+        "Wait, did we leave the oven on at the Overlook Hotel?",
+        "Convincing the Avengers to assemble...",
+        "Finding Nemo (again)...",
+        "Untangling the VHS tapes...",
+        "Microwaving the popcorn...",
+        "Cleaning up slime at the Ghostbusters firehouse...",
+        "Recharging the Flux Capacitor...",
+        "Looking for the key to the Matrix...",
+        "Trying to remember the first rule of Fight Club..."
+    ];
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+    console.log(chalk.yellow.bold(`\n   📥 ${randomMessage}`));
     console.log(chalk.gray('   This will only take a moment.\n'));
     
     // Simple animated loader
@@ -367,9 +384,38 @@ async function handleSwipe(liked) {
     }
 }
 
-function showResults() {
+async function showResults() {
     clearScreen();
     
+    const allLikes = Object.values(userChoices);
+    const movieCounts = {};
+
+    allLikes.forEach(likes => {
+        likes.forEach(title => {
+            movieCounts[title] = (movieCounts[title] || 0) + 1;
+        });
+    });
+
+    const perfectMatches = Object.keys(movieCounts).filter(title => movieCounts[title] === users.length);
+    const commonMatches = Object.keys(movieCounts)
+        .filter(title => movieCounts[title] > 1 && movieCounts[title] < users.length)
+        .sort((a, b) => movieCounts[b] - movieCounts[a]);
+
+    if (perfectMatches.length > 0) {
+        await playCelebration();
+    }
+
+    if (perfectMatches.length > 0 || commonMatches.length > 0) {
+        attemptCount = 0; // Reset on any success
+    } else {
+        attemptCount++;
+    }
+
+    if (users.length === 2 && attemptCount >= 3 && perfectMatches.length === 0 && commonMatches.length === 0) {
+        triggerAngryForcedPick();
+        return;
+    }
+
     // Calculate widths for all ASCII art to ensure boxes match
     const resText = figlet.textSync('MATCHES', { font: 'Slant' });
     const enjoyText = figlet.textSync('ENJOY!', { font: 'Small' });
@@ -391,31 +437,6 @@ function showResults() {
         console.log(chalk.yellow(`║ `) + chalk.yellow(l.padEnd(outerWidth - 2)) + chalk.yellow(` ║`));
     });
     console.log(chalk.yellow(`╚${'═'.repeat(outerWidth)}╝\n`));
-
-    const allLikes = Object.values(userChoices);
-    const movieCounts = {};
-
-    allLikes.forEach(likes => {
-        likes.forEach(title => {
-            movieCounts[title] = (movieCounts[title] || 0) + 1;
-        });
-    });
-
-    const perfectMatches = Object.keys(movieCounts).filter(title => movieCounts[title] === users.length);
-    const commonMatches = Object.keys(movieCounts)
-        .filter(title => movieCounts[title] > 1 && movieCounts[title] < users.length)
-        .sort((a, b) => movieCounts[b] - movieCounts[a]);
-
-    if (perfectMatches.length > 0 || commonMatches.length > 0) {
-        attemptCount = 0; // Reset on any success
-    } else {
-        attemptCount++;
-    }
-
-    if (users.length === 2 && attemptCount >= 3 && perfectMatches.length === 0 && commonMatches.length === 0) {
-        triggerAngryForcedPick();
-        return;
-    }
 
     if (perfectMatches.length > 0) {
         console.log(chalk.green(`┌─ PERFECT MATCHES ${'─'.repeat(Math.max(0, outerWidth - 18))}┐`));
@@ -463,6 +484,34 @@ function showResults() {
     console.log(chalk.magenta(`╚${'═'.repeat(outerWidth)}╝\n`));
 
     promptRematch();
+}
+
+async function playCelebration() {
+    for (let frame = 0; frame < 20; frame++) {
+        clearScreen();
+        showHeader();
+        
+        const title = figlet.textSync('BOOM!', { font: 'Slant' });
+        console.log(chalk.green.bold(title));
+        console.log(chalk.yellow.bold('   WE HAVE A PERFECT MATCH!!!\n'));
+
+        // Random confetti characters and colors
+        const chars = ['*', '•', '+', '.', 'o'];
+        for (let i = 0; i < 10; i++) {
+            let line = '   ';
+            for (let j = 0; j < 60; j++) {
+                if (Math.random() > 0.92) {
+                    const color = chalk.hsv(Math.random() * 360, 80, 100);
+                    line += color(chars[Math.floor(Math.random() * chars.length)]);
+                } else {
+                    line += ' ';
+                }
+            }
+            console.log(line);
+        }
+        
+        await new Promise(r => setTimeout(r, 100));
+    }
 }
 
 async function startTieBreaker(candidates) {
