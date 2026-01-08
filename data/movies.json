@@ -8,7 +8,8 @@
     ],
     "rating": "9.3/10",
     "director": "Frank Darabont",
-    "stars": "Tim Robbins, Morgan Freeman"
+    "stars": "Tim Robbins, Morgan Freeman",
+    "isCrowdPleaser": true
   },
   {
     "title": "The Godfather",
@@ -33,7 +34,8 @@
     ],
     "rating": "9.0/10",
     "director": "Christopher Nolan",
-    "stars": "Christian Bale, Heath Ledger"
+    "stars": "Christian Bale, Heath Ledger",
+    "isCrowdPleaser": true
   },
   {
     "title": "Pulp Fiction",
@@ -58,7 +60,8 @@
     ],
     "rating": "8.8/10",
     "director": "Christopher Nolan",
-    "stars": "Leonardo DiCaprio, Joseph Gordon-Levitt"
+    "stars": "Leonardo DiCaprio, Joseph Gordon-Levitt",
+    "isCrowdPleaser": true
   },
   {
     "title": "The Matrix",
@@ -1012,6 +1015,296 @@
     "rating": "8.1/10",
     "director": "Ridley Scott",
     "stars": "Harrison Ford, Rutger Hauer",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Civil War",
+    "synopsis": "A journey across a dystopian future America, following a team of military-embedded journalists as they race against time to reach DC before rebel factions descend upon the White House.",
+    "posterUrl": "http://www.impawards.com/2024/posters/civil_war.jpg",
+    "genres": ["Action", "Thriller"],
+    "rating": "7.6/10",
+    "director": "Alex Garland",
+    "stars": "Kirsten Dunst, Wagner Moura"
+  },
+  {
+    "title": "Furiosa: A Mad Max Saga",
+    "synopsis": "The origin story of renegade warrior Furiosa before her encounter and team-up with Mad Max.",
+    "posterUrl": "http://www.impawards.com/2024/posters/furiosa_a_mad_max_saga.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "George Miller",
+    "stars": "Anya Taylor-Joy, Chris Hemsworth",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Kingdom of the Planet of the Apes",
+    "synopsis": "Many years after the reign of Caesar, a young ape goes on a journey that will lead him to question everything he's been taught about the past and make choices that will define a future for apes and humans alike.",
+    "posterUrl": "http://www.impawards.com/2024/posters/kingdom_of_the_planet_of_the_apes.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Wes Ball",
+    "stars": "Owen Teague, Freya Allan"
+  },
+  {
+    "title": "Challengers",
+    "synopsis": "Tashi, a tennis player turned coach, has transformed her husband from a mediocre player into a world-famous grand slam champion. To jolt him out of his recent losing streak, she makes him play a challenger event.",
+    "posterUrl": "http://www.impawards.com/2024/posters/challengers.jpg",
+    "genres": ["Drama", "Romance", "Sport"],
+    "rating": "N/A",
+    "director": "Luca Guadagnino",
+    "stars": "Zendaya, Mike Faist, Josh O'Connor"
+  },
+  {
+    "title": "The Fall Guy",
+    "synopsis": "A down-and-out stuntman must find the missing star of his ex-girlfriend's blockbuster film, solve a conspiracy and try to win back the love of his life while still doing his day job.",
+    "posterUrl": "http://www.impawards.com/2024/posters/fall_guy.jpg",
+    "genres": ["Action", "Comedy", "Drama"],
+    "rating": "7.3/10",
+    "director": "David Leitch",
+    "stars": "Ryan Gosling, Emily Blunt",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Inside Out 2",
+    "synopsis": "Follows Riley, in her teenage years, encountering new emotions.",
+    "posterUrl": "http://www.impawards.com/2024/posters/inside_out_two.jpg",
+    "genres": ["Animation", "Adventure", "Comedy"],
+    "rating": "N/A",
+    "director": "Kelsey Mann",
+    "stars": "Amy Poehler, Maya Hawke",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Deadpool & Wolverine",
+    "synopsis": "Wolverine is recovering from his injuries when he crosses paths with the loudmouth, Deadpool. They team up to defeat a common enemy.",
+    "posterUrl": "http://www.impawards.com/2024/posters/deadpool_and_wolverine.jpg",
+    "genres": ["Action", "Comedy", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Shawn Levy",
+    "stars": "Ryan Reynolds, Hugh Jackman",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Monkey Man",
+    "synopsis": "An anonymous young man unleashes a campaign of vengeance against the corrupt leaders who murdered his mother and continue to systematically victimize the poor and powerless.",
+    "posterUrl": "http://www.impawards.com/2024/posters/monkey_man.jpg",
+    "genres": ["Action", "Thriller"],
+    "rating": "7.3/10",
+    "director": "Dev Patel",
+    "stars": "Dev Patel, Sharlto Copley"
+  },
+  {
+    "title": "Godzilla x Kong: The New Empire",
+    "synopsis": "Two ancient titans, Godzilla and Kong, clash in an epic battle as humans unravel their intertwined origins and connection to Skull Island's mysteries.",
+    "posterUrl": "http://www.impawards.com/2024/posters/godzilla_x_kong_the_new_empire.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "6.5/10",
+    "director": "Adam Wingard",
+    "stars": "Rebecca Hall, Brian Tyree Henry",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "A Quiet Place: Day One",
+    "synopsis": "Experience the day the world went quiet.",
+    "posterUrl": "http://www.impawards.com/2024/posters/quiet_place_day_one.jpg",
+    "genres": ["Drama", "Horror", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Michael Sarnoski",
+    "stars": "Lupita Nyong'o, Joseph Quinn"
+  },
+  {
+    "title": "Breaking Bad",
+    "synopsis": "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.",
+    "posterUrl": "http://www.impawards.com/tv/posters/breaking_bad.jpg",
+    "genres": ["TV Shows", "Crime", "Drama"],
+    "rating": "9.5/10",
+    "director": "Vince Gilligan",
+    "stars": "Bryan Cranston, Aaron Paul",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Game of Thrones",
+    "synopsis": "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns after being dormant for millennia.",
+    "posterUrl": "http://www.impawards.com/tv/posters/game_of_thrones.jpg",
+    "genres": ["TV Shows", "Action", "Adventure", "Drama"],
+    "rating": "9.2/10",
+    "director": "David Benioff, D.B. Weiss",
+    "stars": "Emilia Clarke, Peter Dinklage",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "The Last of Us",
+    "synopsis": "After a global pandemic destroys civilization, a hardened survivor takes charge of a 14-year-old girl who may be humanity's last hope.",
+    "posterUrl": "http://www.impawards.com/tv/posters/last_of_us.jpg",
+    "genres": ["TV Shows", "Action", "Adventure", "Drama"],
+    "rating": "8.8/10",
+    "director": "Craig Mazin, Neil Druckmann",
+    "stars": "Pedro Pascal, Bella Ramsey",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Succession",
+    "synopsis": "The Roy family is known for controlling the biggest media and entertainment company in the world. However, their world changes when their father steps down from the company.",
+    "posterUrl": "http://www.impawards.com/tv/posters/succession.jpg",
+    "genres": ["TV Shows", "Drama"],
+    "rating": "8.9/10",
+    "director": "Jesse Armstrong",
+    "stars": "Brian Cox, Jeremy Strong, Sarah Snook"
+  },
+  {
+    "title": "The Bear",
+    "synopsis": "A young chef from the fine dining world comes home to Chicago to run his family sandwich shop after a heartbreaking death in his family.",
+    "posterUrl": "http://www.impawards.com/tv/posters/bear.jpg",
+    "genres": ["TV Shows", "Comedy", "Drama"],
+    "rating": "8.7/10",
+    "director": "Christopher Storer",
+    "stars": "Jeremy Allen White, Ayo Edebiri",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Stranger Things",
+    "synopsis": "When a young boy disappears, his mother, a police chief and his friends must confront terrifying supernatural forces in order to get him back.",
+    "posterUrl": "http://www.impawards.com/tv/posters/stranger_things.jpg",
+    "genres": ["TV Shows", "Drama", "Fantasy", "Horror"],
+    "rating": "8.7/10",
+    "director": "The Duffer Brothers",
+    "stars": "Millie Bobby Brown, Finn Wolfhard",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Severance",
+    "synopsis": "Mark leads a team of office workers whose memories have been surgically divided between their work and personal lives. When a mysterious colleague appears outside of work, it begins a journey to discover the truth about their jobs.",
+    "posterUrl": "http://www.impawards.com/tv/posters/severance.jpg",
+    "genres": ["TV Shows", "Drama", "Mystery", "Sci-Fi"],
+    "rating": "8.7/10",
+    "director": "Dan Erickson",
+    "stars": "Adam Scott, Britt Lower"
+  },
+  {
+    "title": "The Mandalorian",
+    "synopsis": "After the fall of the Galactic Empire, a lone gunfighter makes his way through the outer reaches of the lawless galaxy.",
+    "posterUrl": "http://www.impawards.com/tv/posters/mandalorian.jpg",
+    "genres": ["TV Shows", "Action", "Adventure", "Sci-Fi"],
+    "rating": "8.7/10",
+    "director": "Jon Favreau",
+    "stars": "Pedro Pascal, Carl Weathers",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "House of the Dragon",
+    "synopsis": "The Targaryen dynasty is at the absolute apex of its power, with more than 15 dragons under their yoke. Most empires crumble from such heights. In the case of the Targaryens, their slow fall begins when King Viserys breaks with a century of tradition by naming his daughter Rhaenyra heir to the Iron Throne.",
+    "posterUrl": "http://www.impawards.com/tv/posters/house_of_the_dragon.jpg",
+    "genres": ["TV Shows", "Action", "Adventure", "Drama", "Fantasy"],
+    "rating": "8.4/10",
+    "director": "Ryan Condal, George R.R. Martin",
+    "stars": "Matt Smith, Emma D'Arcy",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Fallout",
+    "synopsis": "In a future, post-apocalyptic Los Angeles brought about by nuclear decimation, citizens must live in underground bunkers to protect themselves from radiation, mutants and bandits.",
+    "posterUrl": "http://www.impawards.com/tv/posters/fallout.jpg",
+    "genres": ["TV Shows", "Action", "Adventure", "Drama", "Sci-Fi"],
+    "rating": "8.4/10",
+    "director": "Geneva Robertson-Dworet",
+    "stars": "Ella Purnell, Aaron Moten",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Superman",
+    "synopsis": "Superman journeys to reconcile his Kryptonian heritage with his human upbringing as Clark Kent of Smallville, Kansas.",
+    "posterUrl": "http://www.impawards.com/2025/posters/superman.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "James Gunn",
+    "stars": "David Corenswet, Rachel Brosnahan",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Avatar: Fire and Ash",
+    "synopsis": "Jake Sully and Neytiri encounter the Ash People, a clan of Na'vi who are more aggressive and utilize fire, challenging their understanding of Pandora.",
+    "posterUrl": "http://www.impawards.com/2025/posters/avatar_fire_and_ash.jpg",
+    "genres": ["Action", "Adventure", "Fantasy"],
+    "rating": "N/A",
+    "director": "James Cameron",
+    "stars": "Sam Worthington, Zoe Saldana",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "The Fantastic Four: First Steps",
+    "synopsis": "Marvel's first family—Reed Richards, Sue Storm, Johnny Storm, and Ben Grimm—face cosmic threats and personal challenges in the 1960s.",
+    "posterUrl": "http://www.impawards.com/2025/posters/fantastic_four.jpg",
+    "genres": ["Action", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Matt Shakman",
+    "stars": "Pedro Pascal, Vanessa Kirby",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Thunderbolts*",
+    "synopsis": "A group of supervillains and antiheroes are recruited by the government to go on missions.",
+    "posterUrl": "http://www.impawards.com/2025/posters/thunderbolts.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Jake Schreier",
+    "stars": "Florence Pugh, Sebastian Stan",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Captain America: Brave New World",
+    "synopsis": "Sam Wilson, who has officially taken up the mantle of Captain America, finds himself in the middle of an international incident.",
+    "posterUrl": "http://www.impawards.com/2025/posters/captain_america_brave_new_world.jpg",
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Julius Onah",
+    "stars": "Anthony Mackie, Harrison Ford",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Daredevil: Born Again",
+    "synopsis": "Matt Murdock and Wilson Fisk try to put their dark alter-egos aside to serve the people of New York, but their pasts catch up to them.",
+    "posterUrl": "http://www.impawards.com/tv/posters/daredevil_born_again.jpg",
+    "genres": ["TV Shows", "Action", "Crime", "Drama"],
+    "rating": "N/A",
+    "director": "Michael Cuesta",
+    "stars": "Charlie Cox, Vincent D'Onofrio",
+    "isCrowdPleaser": true
+  },
+  {
+    "title": "Alien: Earth",
+    "synopsis": "When a mysterious space vessel crash-lands on Earth, a young woman and a ragtag group of tactical soldiers make a fateful discovery that puts them face-to-face with the planet's greatest threat.",
+    "posterUrl": "http://www.impawards.com/tv/posters/alien_earth.jpg",
+    "genres": ["TV Shows", "Sci-Fi", "Horror"],
+    "rating": "N/A",
+    "director": "Noah Hawley",
+    "stars": "Sydney Chandler, Timothy Olyphant"
+  },
+  {
+    "title": "Welcome to Derry",
+    "synopsis": "Set in the 1960s, this prequel series explores the origins of the curse that will haunt the small town of Derry, Maine, and the rise of Pennywise the Clown.",
+    "posterUrl": "http://www.impawards.com/tv/posters/it_welcome_to_derry.jpg",
+    "genres": ["TV Shows", "Horror", "Drama"],
+    "rating": "N/A",
+    "director": "Andy Muschietti",
+    "stars": "Bill Skarsgård, Taylour Paige"
+  },
+  {
+    "title": "Ironheart",
+    "synopsis": "Genius teenage inventor Riri Williams creates the most advanced suit of armor since Iron Man.",
+    "posterUrl": "http://www.impawards.com/tv/posters/ironheart.jpg",
+    "genres": ["TV Shows", "Action", "Sci-Fi"],
+    "rating": "N/A",
+    "director": "Sam Bailey",
+    "stars": "Dominique Thorne, Anthony Ramos"
+  },
+  {
+    "title": "A Knight of the Seven Kingdoms",
+    "synopsis": "A century before the events of 'Game of Thrones,' two unlikely heroes wandered Westeros... a young, naïve but courageous knight, Ser Duncan the Tall, and his diminutive squire, Egg.",
+    "posterUrl": "http://www.impawards.com/tv/posters/knight_of_the_seven_kingdoms.jpg",
+    "genres": ["TV Shows", "Action", "Adventure", "Drama"],
+    "rating": "N/A",
+    "director": "Owen Harris",
+    "stars": "Peter Claffey, Dexter Sol Ansell",
     "isCrowdPleaser": true
   }
 ]

@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2026-01-07
+### Added
+- **Perfect Match Roulette:** When a group finds multiple unanimous "Perfect Matches," the app now triggers a high-energy spinny roulette to help you pick the final winner from the best of the best.
+- **Monochrome Mode:** Added a high-resolution grayscale character fallback for terminals that do not support color or when color is disabled.
+- **Color Control Flags:** Support for `--no-color`, `--color=16`, `--color=256`, and `--color=truecolor` flags, as well as the `NO_COLOR` environment variable.
+- **Dynamic Genre Themes:** Implemented custom UI themes for **Crime**, **Fantasy**, **Horror**, **Sci-Fi**, **Western**, and **Romance** that activate based on your first genre selection.
+- **Enhanced Session Summary:** Added multi-line word wrapping for individual likes to ensure movie titles are never cut off.
+- **TV Show Support:** Added 10 highly-rated TV Shows (e.g., *Breaking Bad*, *The Last of Us*, *Succession*). These are excluded by default but can be enabled by selecting the "TV Shows" genre.
+- **2024-2025 Movie Pack:** Expanded the library with 20 major hits from 2024 and 2025, including *Civil War*, *Furiosa*, *Superman*, and *The Fantastic Four: First Steps*.
+- **Improved Poster URLs:** Updated poster sources to safer `impawards.com` links for new entries, ensuring higher reliability.
+- **Pre-initialized User Data:** Added early initialization of user choices to prevent potential undefined errors during a session.
+### Changed
+- **Architectural Refactor:** Split the monolithic `index.js` into modular components (`config.js`, `logic.js`, `ui.js`) to improve maintainability and scalability.
+- **Unified State Management:** Consolidated all global variables into a single `state` object for cleaner state transitions and easier debugging.
+- **Improved Color Stability:** Replaced `chalk.hsv` with robust RGB color generation to ensure consistent performance across different terminal environments.
+- **Code Decoupling:** Separated pure logic (shuffling, matching) from UI rendering and state management.
+
+### Fixed
+- **Navigation Buttons:** Fixed a critical bug where the `[R]` (Rematch), `[S]` (Summary), and `[Q]` (Quit) buttons were unresponsive at the end of a game session.
+- **Perfect UI Border Alignment:** Implemented an ANSI-aware padding system to ensure movie card borders remain perfectly straight regardless of ASCII art width.
+- **Robust Match Calculation:** Refactored matching logic to iterate over explicit user lists, ensuring accurate results even with partial data.
+- **JSON Syntax:** Corrected a syntax error in `movies.json` that prevented the app from launching.
+- Resolved a state conflict where the roulette animation and celebration animation would sometimes overlap.
+- Fixed a potential bug in poster caching where `indexOf` could return the wrong index if duplicate movie objects existed in a session.
+- Improved robustness of the adaptive matching logic to better handle movies missing the `isCrowdPleaser` property.
+
 ## [1.9.0] - 2026-01-07
 ### Added
 - **Detailed Session Summary:** New feature accessible via `[S]` after a round. Shows individual likes, "Near Matches" (close calls), "Unique Tastes" (outlier picks), and a "Compatibility Score" between users.

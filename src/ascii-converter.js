@@ -54,20 +54,30 @@ async function getAsciiPoster(url, width = 60, height = 30, retries = 2) {
             image.contain(width, targetPixelHeight, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE);
             
             let ascii = '';
+            // Use colored half-blocks if any color is supported.
+            // Chalk will automatically downsample colors for 256-color or 16-color terminals.
+            const useColor = chalk.level > 0;
             
-            for (let y = 0; y < image.bitmap.height; y += 2) {
-                for (let x = 0; x < image.bitmap.width; x++) {
-                    const upperColor = Jimp.intToRGBA(image.getPixelColor(x, y));
-                    // Safely clamp the lower pixel Y to the last row if image height is odd
-                    const lowerY = Math.min(y + 1, image.bitmap.height - 1);
-                    const lowerColor = Jimp.intToRGBA(image.getPixelColor(x, lowerY));
+            // Grayscale characters for no-color mode
+            const chars = '@%#*+=-:. ';
 
-                    // Top pixel is foreground, bottom pixel is background
-                    // Character '▀' (Upper Half Block)
-                    ascii += chalk.rgb(upperColor.r, upperColor.g, upperColor.b)
-                                 .bgRgb(lowerColor.r, lowerColor.g, lowerColor.b)('▀');
+            for (let y = 0; y < image.bitmap.height; y += (useColor ? 2 : 1)) {
+                for (let x = 0; x < image.bitmap.width; x++) {
+                    if (useColor) {
+                        const upperColor = Jimp.intToRGBA(image.getPixelColor(x, y));
+                        const lowerY = Math.min(y + 1, image.bitmap.height - 1);
+                        const lowerColor = Jimp.intToRGBA(image.getPixelColor(x, lowerY));
+                        ascii += chalk.rgb(upperColor.r, upperColor.g, upperColor.b)
+                                     .bgRgb(lowerColor.r, lowerColor.g, lowerColor.b)('▀');
+                    } else {
+                        const color = Jimp.intToRGBA(image.getPixelColor(x, y));
+                        // Standard luminance formula
+                        const brightness = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+                        const charIdx = Math.floor(brightness * (chars.length - 1));
+                        ascii += chars[chars.length - 1 - charIdx];
+                    }
                 }
-                if (y + 2 < image.bitmap.height) ascii += '\n';
+                if (y + (useColor ? 2 : 1) < image.bitmap.height) ascii += '\n';
             }
             return ascii;
         } catch (error) {

@@ -1,7 +1,7 @@
 <img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
 
 
-# Cinematch CLI v1.9.0
+# Cinematch CLI v1.10.0
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
@@ -13,6 +13,17 @@ Created by **Jonah Cecil**.
 
 
 
+
+## What's New in v1.10.0
+- **TV Shows:** Now featuring a curated selection of top-tier TV shows! Enable them by selecting the "TV Shows" genre in the menu.
+- **2024-2025 Library Expansion:** Added 20 brand new titles, covering hits from 2024 and 2025.
+- **Visual & Stability Refinements:** Perfectly aligned UI borders using new ANSI-aware padding and a fully unified state engine for rock-solid performance.
+- **Stability Improvements:** Fixed navigation buttons at the end of rounds and resolved color rendering crashes.
+- **Under-the-Hood Overhaul:** Fully modularized code structure for better performance and easier updates.
+- **Perfect Match Roulette:** Too many good choices? If your group agrees on multiple movies, Cinematch now spins the wheel to pick the ultimate winner from your unanimous likes!
+- **Monochrome Mode & Color Flags:** Added a high-resolution grayscale fallback for non-color terminals. You can now also force color levels using `--no-color`, `--color=16`, `--color=256`, or `--color=truecolor`.
+- **Dynamic Genre Themes:** Selecting **Crime**, **Fantasy**, **Horror**, **Sci-Fi**, **Western**, or **Romance** now triggers a unique UI redesign (colors, borders, and icons) that matches the mood of your chosen genre!
+- **Smarter Summaries:** The summary view now includes word wrapping for long movie lists and is accessible after every type of round conclusion.
 
 ## What's New in v1.9.0
 - **Deep Session Summary:** After the matches are revealed, press `[S]` to see a full breakdown of the session, including who liked what and how compatible your tastes were!
@@ -86,7 +97,12 @@ npm test
 
 ## Project Structure
 
-- `src/`: Application source code (`index.js`, `ascii-converter.js`).
+- `src/`: Application source code.
+    - `index.js`: Main entry point and state manager.
+    - `config.js`: Configuration constants and theme definitions.
+    - `logic.js`: Core game logic (shuffling, matching, filtering).
+    - `ui.js`: UI rendering, ASCII art, and animations.
+    - `ascii-converter.js`: Image-to-ASCII processing utility.
 - `data/`: JSON data files (`movies.json`).
 - `test/`: Test scripts (`test-poster.js`).
 - `package.json`: Project metadata and dependencies.
