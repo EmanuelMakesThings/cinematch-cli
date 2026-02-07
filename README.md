@@ -1,7 +1,7 @@
 <img width="530" height="166" alt="Screenshot 2026-01-07 164341" src="https://github.com/user-attachments/assets/40b8419a-07af-4df0-8380-a546aea66e62" />
 
 
-# Cinematch CLI v1.10.0
+# Cinematch CLI v1.11.0
 
 Cinematch CLI is a fun, Tinder-style movie selector for groups. It allows multiple users to "swipe" on a curated list of movies to find the perfect film that everyone (or most people) will enjoy.
 
@@ -13,6 +13,10 @@ Created by **Jonah Cecil**.
 
 
 
+
+## What's New in v1.11.0
+- **Interactive Main Menu:** A new landing screen with "Play" and "Settings" options for a more polished and guided entry into the application.
+- **Force Pool Size:** Added a new setting to override the default 10-movie pool. Choose between 5, 10, 15, 25, or 50 movies per session.
 
 ## What's New in v1.10.0
 - **TV Shows:** Now featuring a curated selection of top-tier TV shows! Enable them by selecting the "TV Shows" genre in the menu.

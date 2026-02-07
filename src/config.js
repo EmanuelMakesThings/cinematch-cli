@@ -4,6 +4,7 @@ const CARD_WIDTH = 60;
 const POSTER_HEIGHT = 30;
 const SWIPES_PER_USER = 10;
 const POSTER_FETCH_BATCH_SIZE = 5;
+const BLITZ_LIMIT_MS = 3000;
 
 const THEMES = {
     DEFAULT: { primary: chalk.cyan, secondary: chalk.magenta, accent: chalk.yellow, border: '═', side: '║', corner: ['╔', '╗', '╚', '╝'] },
@@ -20,5 +21,6 @@ module.exports = {
     POSTER_HEIGHT,
     SWIPES_PER_USER,
     POSTER_FETCH_BATCH_SIZE,
+    BLITZ_LIMIT_MS,
     THEMES
 };

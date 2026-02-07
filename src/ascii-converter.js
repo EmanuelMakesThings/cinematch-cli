@@ -39,12 +39,14 @@ async function getAsciiPoster(url, width = 60, height = 30, retries = 2) {
         try {
             const response = await axios.get(url, { 
                 responseType: 'arraybuffer',
-                timeout: 5000,
+                timeout: 10000,
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (movieApp-CLI/1.8.2)'
                 }
             });
-            const image = await Jimp.read(response.data);
+            // Ensure we pass a Node Buffer to Jimp (Axios may return an ArrayBuffer)
+            const buffer = Buffer.isBuffer(response.data) ? response.data : Buffer.from(response.data);
+            const image = await Jimp.read(buffer);
             
             // We use the 'Half Block' technique: one character represents TWO vertical pixels.
             // This doubles the vertical resolution.

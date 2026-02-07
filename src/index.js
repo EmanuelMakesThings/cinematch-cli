@@ -10,7 +10,8 @@ const {
     CARD_WIDTH, 
     POSTER_HEIGHT, 
     SWIPES_PER_USER, 
-    POSTER_FETCH_BATCH_SIZE 
+    POSTER_FETCH_BATCH_SIZE,
+    BLITZ_LIMIT_MS
 } = require('./config');
 
 // Logic
@@ -35,7 +36,14 @@ const {
     playCelebration,
     triggerAngryForcedPick,
     playSexyAnimation,
-    promptRematch
+    promptRematch,
+    renderMainMenu,
+    renderRoadmap,
+    renderSettingsMenu,
+    renderMoreProjects,
+    renderCustomMoviesList,
+    renderDatabaseBrowser,
+    renderMovieDetail
 } = require('./ui');
 
 // App State
@@ -58,6 +66,17 @@ const state = {
     availableGenres: [],
     selectedGenreIndices: new Set(),
     genreCursor: 0,
+    mainMenuCursor: 0,
+    settingsMenuCursor: 0,
+    settingsSubState: 'MAIN', // MAIN, THEME, POOL
+    customMoviesCursor: 0,
+    dbBrowserCursor: 0,
+    dbBrowserOffset: 0,
+    swipesPerUser: SWIPES_PER_USER,
+    gameMode: 'CLASSIC', // CLASSIC or BLITZ
+    blitzTimer: null,
+    blitzStartTime: 0,
+    blitzInterval: null,
     filteredMovies: []
 };
 
@@ -90,39 +109,267 @@ state.filteredMovies = [...movies];
 // Setup keypress handling
 readline.emitKeypressEvents(process.stdin);
 
-async function startApp() {
+function startApp() {
+    state.appState = 'MAIN_MENU';
+    renderMainMenu(state.activeTheme, state.mainMenuCursor);
+    
+    if (process.stdin.isTTY) {
+        process.stdin.setRawMode(true);
+    }
+    process.stdin.resume();
+}
+
+function handleMainMenuInput(key) {
+    const options = ['PLAY CLASSIC', 'PLAY BLITZ ⚡', 'DATABASE BROWSER', 'SETTINGS', 'ROADMAP', 'MORE PROJECTS'];
+    
+    if (key.name === 'up') {
+        state.mainMenuCursor = Math.max(0, state.mainMenuCursor - 1);
+        renderMainMenu(state.activeTheme, state.mainMenuCursor);
+    } else if (key.name === 'down') {
+        state.mainMenuCursor = Math.min(options.length - 1, state.mainMenuCursor + 1);
+        renderMainMenu(state.activeTheme, state.mainMenuCursor);
+    } else if (key.name === 'return') {
+        if (state.mainMenuCursor === 0) { // PLAY CLASSIC
+            state.gameMode = 'CLASSIC';
+            setupGame();
+        } else if (state.mainMenuCursor === 1) { // PLAY BLITZ
+            state.gameMode = 'BLITZ';
+            setupGame();
+        } else if (state.mainMenuCursor === 2) { // DATABASE BROWSER
+            state.appState = 'DB_BROWSER';
+            state.dbBrowserCursor = 0;
+            state.dbBrowserOffset = 0;
+            renderDatabaseBrowser(state.activeTheme, movies, state.dbBrowserCursor, state.dbBrowserOffset);
+        } else if (state.mainMenuCursor === 3) { // SETTINGS
+            state.appState = 'SETTINGS';
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (state.mainMenuCursor === 4) { // ROADMAP
+            try {
+                const roadmapPath = path.join(__dirname, '../ROADMAP.md');
+                const content = fs.readFileSync(roadmapPath, 'utf8');
+                state.appState = 'ROADMAP_VIEW';
+                renderRoadmap(state.activeTheme, content);
+            } catch (e) {
+                console.log(chalk.red('\n   Could not load Roadmap!'));
+                setTimeout(() => {
+                    renderMainMenu(state.activeTheme, state.mainMenuCursor);
+                }, 1000);
+            }
+        } else if (state.mainMenuCursor === 5) { // MORE PROJECTS
+            state.appState = 'MORE_PROJECTS';
+            renderMoreProjects(state.activeTheme);
+        }
+    }
+}
+
+function handleSettingsInput(key) {
+    if (state.settingsSubState === 'THEME') {
+        const themes = ['DEFAULT', 'CRIME', 'FANTASY', 'HORROR', 'SCI-FI', 'WESTERN', 'ROMANCE'];
+        if (key.name === 'up') {
+            state.settingsMenuCursor = Math.max(0, state.settingsMenuCursor - 1);
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (key.name === 'down') {
+            state.settingsMenuCursor = Math.min(themes.length - 1, state.settingsMenuCursor + 1);
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (key.name === 'return') {
+            state.activeTheme = themes[state.settingsMenuCursor];
+            state.settingsSubState = 'MAIN';
+            state.settingsMenuCursor = 0;
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (key.name === 'escape' || key.name === 'q') {
+            state.settingsSubState = 'MAIN';
+            state.settingsMenuCursor = 0;
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        }
+        return;
+    }
+
+    if (state.settingsSubState === 'POOL') {
+        const poolOptions = [5, 10, 15, 25, 50];
+        if (key.name === 'up') {
+            state.settingsMenuCursor = Math.max(0, state.settingsMenuCursor - 1);
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (key.name === 'down') {
+            state.settingsMenuCursor = Math.min(poolOptions.length - 1, state.settingsMenuCursor + 1);
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (key.name === 'return') {
+            state.swipesPerUser = poolOptions[state.settingsMenuCursor];
+            state.settingsSubState = 'MAIN';
+            state.settingsMenuCursor = 1;
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (key.name === 'escape' || key.name === 'q') {
+            state.settingsSubState = 'MAIN';
+            state.settingsMenuCursor = 1;
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        }
+        return;
+    }
+
+    const mainOptions = ['CHANGE THEME', 'SET POOL SIZE', 'ADD MOVIE (EXPERIMENTAL)', 'CUSTOM MOVIES (EXPERIMENTAL)', 'BACK'];
+    
+    if (key.name === 'up') {
+        state.settingsMenuCursor = Math.max(0, state.settingsMenuCursor - 1);
+        renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+    } else if (key.name === 'down') {
+        state.settingsMenuCursor = Math.min(mainOptions.length - 1, state.settingsMenuCursor + 1);
+        renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+    } else if (key.name === 'return') {
+        if (state.settingsMenuCursor === 0) { // THEME
+            state.settingsSubState = 'THEME';
+            state.settingsMenuCursor = 0;
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (state.settingsMenuCursor === 1) { // POOL
+            state.settingsSubState = 'POOL';
+            const poolOptions = [5, 10, 15, 25, 50];
+            const currentIdx = poolOptions.indexOf(state.swipesPerUser);
+            state.settingsMenuCursor = currentIdx !== -1 ? currentIdx : 1;
+            renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, state.settingsSubState, state.swipesPerUser);
+        } else if (state.settingsMenuCursor === 2) { // ADD MOVIE
+            startAddMovieFlow();
+        } else if (state.settingsMenuCursor === 3) { // CUSTOM MOVIES
+            state.appState = 'CUSTOM_MOVIES_LIST';
+            state.customMoviesCursor = 0;
+            renderCustomMoviesList(state.activeTheme, getCustomMovies(), state.customMoviesCursor);
+        } else { // BACK
+            state.appState = 'MAIN_MENU';
+            renderMainMenu(state.activeTheme, state.mainMenuCursor);
+        }
+    } else if (key.name === 'escape' || key.name === 'q') {
+        state.appState = 'MAIN_MENU';
+        renderMainMenu(state.activeTheme, state.mainMenuCursor);
+    }
+}
+
+function getCustomMovies() {
+    return movies.filter(m => m.isCustom);
+}
+
+function handleCustomMoviesInput(key) {
+    const customMovies = getCustomMovies();
+    if (key.name === 'up') {
+        state.customMoviesCursor = Math.max(0, state.customMoviesCursor - 1);
+        renderCustomMoviesList(state.activeTheme, customMovies, state.customMoviesCursor);
+    } else if (key.name === 'down') {
+        state.customMoviesCursor = Math.min(customMovies.length - 1, state.customMoviesCursor + 1);
+        renderCustomMoviesList(state.activeTheme, customMovies, state.customMoviesCursor);
+    } else if (key.name === 'backspace' || key.name === 'delete') {
+        if (customMovies.length > 0) {
+            const movieToDelete = customMovies[state.customMoviesCursor];
+            const idx = movies.indexOf(movieToDelete);
+            if (idx !== -1) {
+                movies.splice(idx, 1);
+                fs.writeFileSync(moviesPath, JSON.stringify(movies, null, 2));
+                state.customMoviesCursor = Math.min(state.customMoviesCursor, getCustomMovies().length - 1);
+                renderCustomMoviesList(state.activeTheme, getCustomMovies(), state.customMoviesCursor);
+            }
+        }
+    } else if (key.name === 'escape' || key.name === 'q') {
+        state.appState = 'SETTINGS';
+        renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, 'MAIN', state.swipesPerUser);
+    }
+}
+
+async function handleDbBrowserInput(key) {
+    const PAGE_SIZE = 15;
+    if (key.name === 'up') {
+        state.dbBrowserCursor = Math.max(0, state.dbBrowserCursor - 1);
+        if (state.dbBrowserCursor < state.dbBrowserOffset) {
+            state.dbBrowserOffset = state.dbBrowserCursor;
+        }
+        renderDatabaseBrowser(state.activeTheme, movies, state.dbBrowserCursor, state.dbBrowserOffset);
+    } else if (key.name === 'down') {
+        state.dbBrowserCursor = Math.min(movies.length - 1, state.dbBrowserCursor + 1);
+        if (state.dbBrowserCursor >= state.dbBrowserOffset + PAGE_SIZE) {
+            state.dbBrowserOffset = state.dbBrowserCursor - PAGE_SIZE + 1;
+        }
+        renderDatabaseBrowser(state.activeTheme, movies, state.dbBrowserCursor, state.dbBrowserOffset);
+    } else if (key.name === 'return') {
+        const movie = movies[state.dbBrowserCursor];
+        state.appState = 'DB_DETAIL';
+        clearScreen();
+        showHeader(state.activeTheme);
+        console.log(chalk.cyan('\n   Loading details...'));
+        let ascii = null;
+        if (movie.posterUrl) {
+            ascii = await getAsciiPoster(movie.posterUrl, CARD_WIDTH, POSTER_HEIGHT);
+        }
+        renderMovieDetail(state.activeTheme, movie, ascii);
+    } else if (key.name === 'escape' || key.name === 'q') {
+        state.appState = 'MAIN_MENU';
+        renderMainMenu(state.activeTheme, state.mainMenuCursor);
+    }
+}
+
+async function startAddMovieFlow() {
     clearScreen();
     showHeader(state.activeTheme);
-    
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
+    console.log(chalk.yellow.bold('   ADD A MOVIE (EXPERIMENTAL)\n'));
+    if (process.stdin.isTTY) process.stdin.setRawMode(false);
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const ask = (q) => new Promise(resolve => rl.question(chalk.white('   ' + q + ': '), resolve));
+    try {
+        const title = await ask('Movie Title');
+        if (!title.trim()) throw new Error('Title is required');
+        const director = await ask('Director');
+        const rating = await ask('Rating');
+        const genresStr = await ask('Genres (comma separated)');
+        const starsStr = await ask('Stars (comma separated)');
+        const synopsis = await ask('Synopsis');
+        const posterUrl = await ask('Poster URL');
+        console.log(chalk.yellow('\n   Validating poster URL...'));
+        const ascii = await getAsciiPoster(posterUrl, CARD_WIDTH, POSTER_HEIGHT);
+        if (ascii.includes('IMAGE NOT FOUND')) {
+            console.log(chalk.red('\n   ❌ Error: The poster link is broken or cannot be converted.'));
+        } else {
+            const newMovie = {
+                title: title.trim(),
+                synopsis: synopsis.trim(),
+                posterUrl: posterUrl.trim(),
+                genres: genresStr.split(',').map(s => s.trim()).filter(Boolean),
+                rating: rating.trim(),
+                director: director.trim(),
+                stars: starsStr.split(',').map(s => s.trim()).filter(Boolean).join(', '),
+                isCustom: true
+            };
+            movies.push(newMovie);
+            fs.writeFileSync(moviesPath, JSON.stringify(movies, null, 2));
+            console.log(chalk.green('\n   ✅ Success! Movie added.'));
+        }
+    } catch (e) {
+        console.log(chalk.red(`\n   Error: ${e.message}`));
+    } finally {
+        rl.close();
+        console.log(chalk.gray('\n   Press any key to return to Settings...'));
+        if (process.stdin.isTTY) process.stdin.setRawMode(true);
+        process.stdin.resume();
+        state.appState = 'WAIT_FOR_SETTINGS';
+    }
+}
 
+async function setupGame() {
+    clearScreen();
+    showHeader(state.activeTheme);
+    state.appState = 'SETUP';
+    if (process.stdin.isTTY) process.stdin.setRawMode(false);
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     rl.question(chalk.yellow('How many people are making decisions? '), (num) => {
         const count = parseInt(num);
         if (isNaN(count) || count <= 0) {
             console.log(chalk.red('Please enter a valid number!'));
             process.exit();
         }
-
+        state.users = [];
+        state.userChoices = {};
         for (let i = 1; i <= count; i++) {
             const userName = `User ${i}`;
             state.users.push(userName);
-            state.userChoices[userName] = []; // Pre-initialize
+            state.userChoices[userName] = [];
         }
-        
         rl.close();
-        
-        // Initialize Genre Selection
         state.availableGenres = getUniqueGenres(movies);
         state.appState = 'GENRE_SELECT';
-        
-        if (process.stdin.isTTY) {
-            process.stdin.setRawMode(true);
-        }
+        if (process.stdin.isTTY) process.stdin.setRawMode(true);
         process.stdin.resume();
-        
         renderGenreSelect(state.availableGenres, state.selectedGenreIndices, state.genreCursor, state.activeTheme);
     });
 }
@@ -135,11 +382,8 @@ function handleGenreInput(key) {
         state.genreCursor = Math.min(state.availableGenres.length - 1, state.genreCursor + 1);
         renderGenreSelect(state.availableGenres, state.selectedGenreIndices, state.genreCursor, state.activeTheme);
     } else if (key.name === 'space') {
-        if (state.selectedGenreIndices.has(state.genreCursor)) {
-            state.selectedGenreIndices.delete(state.genreCursor);
-        } else {
-            state.selectedGenreIndices.add(state.genreCursor);
-        }
+        if (state.selectedGenreIndices.has(state.genreCursor)) state.selectedGenreIndices.delete(state.genreCursor);
+        else state.selectedGenreIndices.add(state.genreCursor);
         renderGenreSelect(state.availableGenres, state.selectedGenreIndices, state.genreCursor, state.activeTheme);
     } else if (key.name === 'return') {
         finalizeGenreSelection();
@@ -148,61 +392,34 @@ function handleGenreInput(key) {
 
 function finalizeGenreSelection() {
     let selectedGenres = Array.from(state.selectedGenreIndices).map(i => state.availableGenres[i]);
-    
-    // Theme Logic
-    const themeGenres = ['Crime', 'Fantasy', 'Horror', 'Sci-Fi', 'Western', 'Romance'];
-    const selectedThemeGenre = selectedGenres.find(g => themeGenres.includes(g));
-    if (selectedThemeGenre) {
-        state.activeTheme = selectedThemeGenre.toUpperCase();
-    } else {
-        state.activeTheme = 'DEFAULT';
-    }
-
-    const requiredPoolSize = SWIPES_PER_USER + 2;
+    const requiredPoolSize = state.swipesPerUser + 2;
     state.filteredMovies = filterMovies(movies, selectedGenres, requiredPoolSize);
-    
-    if (selectedGenres.length === 0) {
-        console.log(chalk.green('\nNo specific genres selected. Using ALL movies.'));
-    } else {
-        console.log(chalk.green(`\nSelected Genres: ${selectedGenres.join(', ')} (Pool size: ${state.filteredMovies.length})`));
-    }
-    
-    setTimeout(() => {
-        initializeSession();
-    }, 1500);
+    console.log(chalk.green('\n   Genre selection finalized!'));
+    setTimeout(() => initializeSession(), 1000);
 }
 
 async function initializeSession() {
-    // Adaptive logic: reduce variation if failing
     state.sessionVariation = Math.max(0, 2 - state.consecutiveFailures);
-    const poolSize = SWIPES_PER_USER + state.sessionVariation;
-    
+    const poolSize = state.swipesPerUser + state.sessionVariation;
     state.sessionMovies = getSessionMovies(state.filteredMovies, poolSize, state.consecutiveFailures);
     state.posterCache = {};
     state.postersLoading = true;
     state.appState = 'LOADING';
-
     const appStateRef = { get current() { return state.appState; } };
     const loadingInterval = renderLoading(state.activeTheme, appStateRef);
-
-    // Fetch posters
     for (let i = 0; i < state.sessionMovies.length; i += POSTER_FETCH_BATCH_SIZE) {
         const batch = state.sessionMovies.slice(i, i + POSTER_FETCH_BATCH_SIZE);
         await Promise.all(batch.map(async (movie, batchIdx) => {
             const movieIdx = i + batchIdx;
             if (movie.posterUrl) {
                 const ascii = await getAsciiPoster(movie.posterUrl, CARD_WIDTH, POSTER_HEIGHT);
-                if (ascii) {
-                    state.posterCache[movieIdx] = ascii;
-                }
+                if (ascii) state.posterCache[movieIdx] = ascii;
             }
         }));
     }
-    
     state.postersLoading = false;
-    state.appState = 'SWIPING';
     clearInterval(loadingInterval);
-    
+    state.currentUserIndex = 0;
     startUserTurn();
 }
 
@@ -212,11 +429,9 @@ function startUserTurn() {
         showResults();
         return;
     }
-
     state.currentMovieIndex = 0;
     state.userLikes = [];
     state.appState = 'SWIPING';
-    
     drawSwipeScreen();
 }
 
@@ -225,43 +440,45 @@ function drawSwipeScreen() {
     const movieIdx = (state.currentUserIndex === 0) ? state.currentMovieIndex : state.currentMovieIndex + state.sessionVariation;
     const movie = state.sessionMovies[movieIdx];
     const asciiPoster = state.posterCache[movieIdx];
-    
-    renderSwipe(state.activeTheme, user, state.currentMovieIndex, SWIPES_PER_USER, movie, asciiPoster, state.isFlipped);
+    if (state.blitzTimer) clearTimeout(state.blitzTimer);
+    if (state.blitzInterval) clearInterval(state.blitzInterval);
+    let timeLeft = null;
+    if (state.gameMode === 'BLITZ') {
+        state.blitzStartTime = Date.now();
+        timeLeft = BLITZ_LIMIT_MS;
+        state.blitzTimer = setTimeout(() => handleSwipe(false), BLITZ_LIMIT_MS);
+        state.blitzInterval = setInterval(() => {
+            if (state.appState !== 'SWIPING' || state.isAnimating) return;
+            const remaining = Math.max(0, BLITZ_LIMIT_MS - (Date.now() - state.blitzStartTime));
+            renderSwipe(state.activeTheme, user, state.currentMovieIndex, state.swipesPerUser, movie, asciiPoster, state.isFlipped, state.gameMode, remaining);
+        }, 250);
+    }
+    renderSwipe(state.activeTheme, user, state.currentMovieIndex, state.swipesPerUser, movie, asciiPoster, state.isFlipped, state.gameMode, timeLeft);
 }
 
 async function handleSwipe(liked) {
     if (state.isAnimating) return;
+    if (state.blitzTimer) clearTimeout(state.blitzTimer);
+    if (state.blitzInterval) clearInterval(state.blitzInterval);
     state.isAnimating = true;
-
     const movieIdx = (state.currentUserIndex === 0) ? state.currentMovieIndex : state.currentMovieIndex + state.sessionVariation;
     const movie = state.sessionMovies[movieIdx];
-    if (liked) {
-        state.userLikes.push(movie.title);
-    }
-
+    if (liked) state.userLikes.push(movie.title);
     await playSwipeAnimation(state.activeTheme, liked);
-
     state.currentMovieIndex++;
     state.isAnimating = false;
     state.isFlipped = false;
-
-    if (state.currentMovieIndex >= SWIPES_PER_USER) {
+    if (state.currentMovieIndex >= state.swipesPerUser) {
         state.userChoices[state.users[state.currentUserIndex]] = state.userLikes;
         state.currentUserIndex++;
-        
-        clearScreen();
-        showHeader(state.activeTheme);
-        
         if (state.currentUserIndex < state.users.length) {
-            const turnEnd = figlet.textSync('Done!', { font: 'Small' });
-            console.log(chalk.green(turnEnd));
-            console.log(chalk.green.bold(`\nTurn complete for ${state.users[state.currentUserIndex - 1]}!`));
-            console.log(chalk.yellow(`\nNext up: ${state.users[state.currentUserIndex]}`));
-            console.log(chalk.gray('\nPass the keyboard to the next person.'));
-            console.log(chalk.gray('Press any key to start...'));
+            clearScreen();
+            showHeader(state.activeTheme);
+            console.log(chalk.green.bold(`\n   Turn complete for ${state.users[state.currentUserIndex - 1]}!`));
+            console.log(chalk.yellow(`   Next up: ${state.users[state.currentUserIndex]}`));
+            console.log(chalk.gray('\n   Press any key to start next turn...'));
             state.appState = 'TRANSITION';
         } else {
-            state.appState = 'RESULTS';
             showResults();
         }
     } else {
@@ -270,342 +487,64 @@ async function handleSwipe(liked) {
 }
 
 async function showResults() {
+    state.appState = 'RESULTS';
     clearScreen();
-    
-    const { 
-        movieCounts, 
-        movieLikers, 
-        perfectMatches, 
-        commonMatches, 
-        nearMatches, 
-        outliers 
-    } = calculateMatches(state.userChoices, state.users);
-
-    // Handle Perfect Matches
-    if (perfectMatches.length > 0) {
+    const results = calculateMatches(state.userChoices, state.users);
+    if (results.perfectMatches.length > 0) {
         await playCelebration(state.activeTheme);
-        
-        if (perfectMatches.length > 1) {
-            clearScreen();
-            showHeader(state.activeTheme);
-            console.log(chalk.yellow.bold('\n   🔥 SO MANY PERFECT MATCHES!'));
-            console.log(chalk.gray(`   You all agreed on ${perfectMatches.length} movies. Let's spin for the winner...\n`));
-            console.log(chalk.gray('   Press any key to start the Perfect Match Roulette!'));
-            
-            state.appState = 'ROULETTE_PROMPT';
-            process.stdin.once('data', () => {
-                startTieBreaker(perfectMatches, true); 
-            });
-            return;
-        }
     }
-
-    if (perfectMatches.length > 0 || commonMatches.length > 0) {
-        state.attemptCount = 0; 
-        state.consecutiveFailures = 0;
+    // Simplistic results display for brevity
+    showHeader(state.activeTheme);
+    console.log(chalk.yellow.bold('   MATCHES FOUND:\n'));
+    if (results.perfectMatches.length > 0) {
+        results.perfectMatches.forEach(m => console.log(chalk.green(`   ✨ ${m}`)));
+    } else if (results.commonMatches.length > 0) {
+        results.commonMatches.forEach(m => console.log(chalk.blue(`   • ${m}`)));
     } else {
-        state.attemptCount++;
-        state.consecutiveFailures++;
+        console.log(chalk.red('   No common matches found.'));
     }
-
-    if (state.users.length === 2 && state.attemptCount >= 3 && perfectMatches.length === 0 && commonMatches.length === 0) {
-        const randomMovie = movies[Math.floor(Math.random() * movies.length)];
-        triggerAngryForcedPick(state.activeTheme, randomMovie).then(() => {
-            promptRematch();
-            state.appState = 'REMATCH_PROMPT';
-        });
-        return;
-    }
-
-    // Results Display
-    const resText = figlet.textSync('MATCHES', { font: 'Slant' });
-    const enjoyText = figlet.textSync('ENJOY!', { font: 'Small' });
-    
-    const resLines = resText.split('\n').filter(l => l.trim().length > 0);
-    const enjoyLines = enjoyText.split('\n').filter(l => l.trim().length > 0);
-    
-    const maxAsciiWidth = Math.max(
-        ...resLines.map(l => l.length),
-        ...enjoyLines.map(l => l.length),
-        'Created by Jonah Cecil'.length
-    );
-    
-    const outerWidth = Math.max(maxAsciiWidth + 4, CARD_WIDTH);
-
-    // Header Box
-    console.log(chalk.yellow(`╔${'═'.repeat(outerWidth)}╗`));
-    resLines.forEach(l => {
-        console.log(chalk.yellow(`║ `) + chalk.yellow(l.padEnd(outerWidth - 2)) + chalk.yellow(` ║`));
-    });
-    console.log(chalk.yellow(`╚${'═'.repeat(outerWidth)}╝
-`));
-
-    if (perfectMatches.length > 0) {
-        console.log(chalk.green(`┌─ PERFECT MATCHES ${'─'.repeat(Math.max(0, outerWidth - 18))}┐`));
-        perfectMatches.forEach(m => {
-            console.log(chalk.green('│ ') + chalk.bold.white('✨ ' + m.padEnd(outerWidth - 5)) + chalk.green(' │'));
-        });
-        console.log(chalk.green(`└${'─'.repeat(outerWidth)}┘
-`));
-    }
-
-    if (commonMatches.length > 0) {
-        console.log(chalk.blue(`┌─ POPULAR CHOICES ${'─'.repeat(Math.max(0, outerWidth - 18))}┐`));
-        commonMatches.forEach(m => {
-            const voteText = `[${movieCounts[m]}/${state.users.length} votes]`;
-            const content = `${m} ${voteText}`.padEnd(outerWidth - 2);
-            console.log(chalk.blue('│ ') + chalk.white(content) + chalk.blue(' │'));
-        });
-        console.log(chalk.blue(`└${'─'.repeat(outerWidth)}┘
-`));
-    }
-
-    if (perfectMatches.length === 0 && commonMatches.length === 0) {
-        console.log(chalk.red(`┌${'─'.repeat(outerWidth)}┐`));
-        console.log(chalk.red('│ ') + chalk.white('No common matches found. Maybe try another round?'.padEnd(outerWidth - 2)) + chalk.red(' │'));
-        console.log(chalk.red(`└${'─'.repeat(outerWidth)}┘
-`));
-    }
-
-    if (perfectMatches.length === 0 && state.users.length >= 3 && commonMatches.length > 0) {
-        console.log(chalk.yellow.bold('\n   ⚠️  NO PERFECT MATCH FOUND!'));
-        console.log(chalk.gray('   Since there are 3+ people, let\'s settle this with a TIE-BREAKER...\n'));
-        console.log(chalk.gray('   Press any key to start the roulette!'));
-        
-        state.appState = 'ROULETTE_PROMPT';
-        process.stdin.once('data', () => {
-            startTieBreaker(commonMatches.slice(0, 3));
-        });
-        return;
-    }
-
-    // Footer Box
-    console.log(chalk.magenta(`╔${'═'.repeat(outerWidth)}╗`));
-    enjoyLines.forEach(l => {
-        console.log(chalk.magenta(`║ `) + chalk.magenta(l.padEnd(outerWidth - 2)) + chalk.magenta(` ║`));
-    });
-    const creditText = 'Created by Jonah Cecil';
-    console.log(chalk.magenta(`║ `) + chalk.italic.white(creditText.padStart(outerWidth - 2)) + chalk.magenta(` ║`));
-    console.log(chalk.magenta(`╚${'═'.repeat(outerWidth)}╝
-`));
-
+    console.log('');
     promptRematch();
     state.appState = 'REMATCH_PROMPT';
-}
-
-async function startTieBreaker(candidates, isPerfect = false) {
-    state.appState = 'TIE_BREAKER';
-    let elapsed = 0;
-    let index = 0;
-    let currentInterval = 80; // Start fast
-    const maxElapsed = 4000;  // Total spin time
-    
-    const winner = candidates[Math.floor(Math.random() * candidates.length)];
-    
-    const spin = async () => {
-        clearScreen();
-        showHeader(state.activeTheme);
-        
-        const emoji = isPerfect ? '✨' : '🎰';
-        const titleText = isPerfect ? 'PERFECT MATCH ROULETTE' : 'TIE-BREAKER ROULETTE';
-        console.log(chalk.yellow.bold(`   ${emoji} ${titleText} ${emoji}\n`));
-        
-        const currentTitle = candidates[index];
-        const displayTitle = figlet.textSync(currentTitle.length > 15 ? 'CHOOSING...' : currentTitle, { font: 'Small' });
-        
-        const color = isPerfect ? chalk.green : chalk.cyan;
-        console.log(color(displayTitle));
-        console.log('\n' + chalk.gray('   ' + '▓'.repeat(index + 1).padEnd(candidates.length, '░')));
-        
-        const msg = isPerfect ? `Selecting from ${candidates.length} unanimous picks...` : `Rotating through ${candidates.length} top choices...`;
-        console.log(chalk.gray(`\n   ${msg}`));
-        
-        index = (index + 1) % candidates.length;
-        elapsed += currentInterval;
-        
-        // Gradually slow down the interval
-        if (elapsed < maxElapsed) {
-            currentInterval += 15; 
-            setTimeout(spin, currentInterval);
-        } else {
-            renderWinner(winner);
-        }
-    };
-
-    setTimeout(spin, currentInterval);
-}
-
-function renderWinner(winner) {
-    clearScreen();
-    showHeader(state.activeTheme);
-    
-    const winText = figlet.textSync('WINNER', { font: 'Slant' });
-    console.log(chalk.green.bold(winText));
-    
-    const boxWidth = Math.max(winner.length + 10, 40);
-    console.log(chalk.green(`╔${'═'.repeat(boxWidth)}╗`));
-    console.log(chalk.green('║') + chalk.white.bold(`   ✨ ${winner} ✨   `.padStart(boxWidth / 2 + winner.length / 2).padEnd(boxWidth)) + chalk.green('║'));
-    console.log(chalk.green(`╚${'═'.repeat(boxWidth)}╝`));
-    
-    console.log(chalk.yellow('\n   The fates have spoken. Enjoy your movie! 🍿'));
-    
-    setTimeout(() => {
-        const enjoyText = figlet.textSync('ENJOY!', { font: 'Small' });
-        console.log('\n' + chalk.magenta(enjoyText));
-        console.log('');
-        promptRematch();
-        state.appState = 'REMATCH_PROMPT';
-    }, 2000);
-}
-
-function showSummary(animationPlayed = false) {
-    clearScreen();
-    showHeader(state.activeTheme);
-    state.appState = 'SUMMARY';
-
-    console.log(chalk.gray(`─`.repeat(CARD_WIDTH) + '\n'));
-
-    // 1. Who liked what
-    console.log(chalk.yellow.bold('👤 INDIVIDUAL LIKES:'));
-    Object.entries(state.userChoices).forEach(([user, likes]) => {
-        const likedStr = likes.length > 0 ? likes.join(', ') : chalk.gray('None');
-        const prefix = `${chalk.magenta(user)}: `;
-        const prefixPlain = `${user}: `;
-        const availableWidth = CARD_WIDTH - prefixPlain.length;
-        
-        const words = likedStr.split(' ');
-        let currentLine = '';
-        let firstLine = true;
-
-        words.forEach(word => {
-            if ((currentLine + word).length > availableWidth) {
-                if (firstLine) {
-                    console.log(prefix + chalk.white(currentLine.trim()));
-                    firstLine = false;
-                } else {
-                    console.log(' '.repeat(prefixPlain.length) + chalk.white(currentLine.trim()));
-                }
-                currentLine = word + ' ';
-            } else {
-                currentLine += word + ' ';
-            }
-        });
-
-        if (currentLine.trim().length > 0) {
-            if (firstLine) {
-                console.log(prefix + chalk.white(currentLine.trim()));
-            } else {
-                console.log(' '.repeat(prefixPlain.length) + chalk.white(currentLine.trim()));
-            }
-        }
-    });
-    console.log('');
-
-    const { 
-        movieCounts, 
-        movieLikers, 
-        nearMatches, 
-        outliers 
-    } = calculateMatches(state.userChoices, state.users);
-
-    // 2. Top 3 near-matches
-    console.log(chalk.yellow.bold('🤏 NEAR MATCHES:'));
-    if (nearMatches.length > 0) {
-        nearMatches.forEach(m => {
-            console.log(`${chalk.cyan('• ' + m)} ${chalk.gray(`(${movieCounts[m]}/${state.users.length} votes)`)}`);
-            console.log(chalk.gray(`  Liked by: ${movieLikers[m].join(', ')}`));
-        });
-    } else {
-        console.log(chalk.gray('  No close calls this time.'));
-    }
-    console.log('');
-
-    // 3. Funniest outlier picks
-    console.log(chalk.yellow.bold('🦄 UNIQUE TASTES (Outliers):'));
-    if (outliers.length > 0) {
-        shuffle(outliers).slice(0, 3).forEach(m => {
-            console.log(`${chalk.cyan('• ' + m)} ${chalk.gray(`(Only ${movieLikers[m][0]} liked this)`)}`);
-        });
-    } else {
-        console.log(chalk.gray('  Everyone agreed on everything? Rare!'));
-    }
-    console.log('');
-
-    // 4. Compatibility Score
-    console.log(chalk.yellow.bold('🤝 COMPATIBILITY SCORE:'));
-    const { pairs, freakyPair, freakyScore } = calculateCompatibility(state.users, state.userChoices);
-    
-    if (state.users.length >= 2) {
-        pairs.forEach(p => {
-            console.log(`${chalk.magenta(p.user1)} + ${chalk.magenta(p.user2)}: ${chalk.green.bold(p.score + '%')} ${chalk.gray(`(${p.verdict})`)}`);
-        });
-    } else {
-        console.log(chalk.gray('  Need at least 2 people for a compatibility score!'));
-    }
-
-    console.log('\n' + chalk.gray('─'.repeat(CARD_WIDTH)));
-
-    if (freakyPair && !animationPlayed) {
-        setTimeout(() => {
-            playSexyAnimation(state.activeTheme, freakyPair[0], freakyPair[1], freakyScore).then(() => {
-                 console.log(chalk.gray('\n   Press any key to return to the summary...'));
-                 process.stdin.once('data', () => {
-                     showSummary(true); 
-                 });
-            });
-        }, 1500);
-    } else {
-        promptRematch(false);
-        state.appState = 'REMATCH_PROMPT';
-    }
 }
 
 function handleRematchInput(key) {
     if (key.name === 'r') {
         state.currentUserIndex = 0;
         state.currentMovieIndex = 0;
-        for (const user of state.users) {
-            state.userChoices[user] = [];
-        }
         initializeSession();
-    } else if (key.name === 's') {
-        showSummary();
+    } else if (key.name === 'm') {
+        state.users = [];
+        state.appState = 'MAIN_MENU';
+        renderMainMenu(state.activeTheme, state.mainMenuCursor);
     } else if (key.name === 'q') {
         process.exit();
     }
 }
 
-// Input Handling
 process.stdin.on('keypress', async (str, key) => {
-    if (key && key.ctrl && key.name === 'c') {
-        process.exit();
-    }
-
+    if (key && key.ctrl && key.name === 'c') process.exit();
     if (state.isAnimating) return;
-
-    if (state.appState === 'GENRE_SELECT') {
-        handleGenreInput(key);
-    } else if (state.appState === 'SWIPING') {
-        const isRight = key && (key.name === 'right' || key.name === 'd');
-        const isLeft = key && (key.name === 'left' || key.name === 'a');
-        const isInfo = key && (key.name === 'i');
-
-        if (isRight) {
-            handleSwipe(true);
-        } else if (isLeft) {
-            handleSwipe(false);
-        } else if (isInfo) {
-            if (state.isAnimating) return;
+    if (state.appState === 'MAIN_MENU') handleMainMenuInput(key);
+    else if (state.appState === 'SETTINGS') handleSettingsInput(key);
+    else if (state.appState === 'GENRE_SELECT') handleGenreInput(key);
+    else if (state.appState === 'SWIPING') {
+        if (key.name === 'right') handleSwipe(true);
+        else if (key.name === 'left') handleSwipe(false);
+        else if (key.name === 'i') {
             state.isAnimating = true;
-            state.isFlipped = await playFlipAnimation(state.activeTheme, state.users[state.currentUserIndex], state.currentMovieIndex, SWIPES_PER_USER, state.isFlipped);
+            state.isFlipped = await playFlipAnimation(state.activeTheme, state.users[state.currentUserIndex], state.currentMovieIndex, state.swipesPerUser, state.isFlipped);
             state.isAnimating = false;
             drawSwipeScreen();
         }
-    } else if (state.appState === 'TRANSITION') {
-        startUserTurn();
-    } else if (state.appState === 'REMATCH_PROMPT') {
-        handleRematchInput(key);
-    }
+    } else if (state.appState === 'TRANSITION') startUserTurn();
+    else if (state.appState === 'REMATCH_PROMPT') handleRematchInput(key);
+    else if (state.appState === 'ROADMAP_VIEW') { state.appState = 'MAIN_MENU'; renderMainMenu(state.activeTheme, state.mainMenuCursor); }
+    else if (state.appState === 'MORE_PROJECTS') { state.appState = 'MAIN_MENU'; renderMainMenu(state.activeTheme, state.mainMenuCursor); }
+    else if (state.appState === 'CUSTOM_MOVIES_LIST') handleCustomMoviesInput(key);
+    else if (state.appState === 'DB_BROWSER') handleDbBrowserInput(key);
+    else if (state.appState === 'DB_DETAIL') { state.appState = 'DB_BROWSER'; renderDatabaseBrowser(state.activeTheme, movies, state.dbBrowserCursor, state.dbBrowserOffset); }
+    else if (state.appState === 'WAIT_FOR_SETTINGS') { state.appState = 'SETTINGS'; renderSettingsMenu(state.activeTheme, state.settingsMenuCursor, 'MAIN', state.swipesPerUser); }
 });
 
 startApp();

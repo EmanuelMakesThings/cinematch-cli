@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const figlet = require('figlet');
-const { CARD_WIDTH, POSTER_HEIGHT, SWIPES_PER_USER, THEMES } = require('./config');
+const { CARD_WIDTH, POSTER_HEIGHT, SWIPES_PER_USER, THEMES, BLITZ_LIMIT_MS } = require('./config');
 
 function clearScreen() {
     process.stdout.write('\x1Bc');
@@ -55,7 +55,7 @@ function showHeader(activeTheme) {
     });
     console.log(theme.primary(`${c3}${border}${c4}`));
     
-    const versionLine = `     v1.10.0 | ${footerText}       `;
+    const versionLine = `     v1.11.0 | ${footerText}       `;
     if (activeTheme === 'HORROR' || activeTheme === 'ROMANCE') {
         console.log(theme.primary.bold.italic(versionLine));
     } else if (activeTheme === 'SCI-FI') {
@@ -75,9 +75,19 @@ function renderGenreSelect(availableGenres, selectedGenreIndices, genreCursor, a
     availableGenres.forEach((genre, index) => {
         const isSelected = selectedGenreIndices.has(index);
         const isHovered = index === genreCursor;
+        const isTV = genre === 'TV Shows';
+        
+        if (isTV) {
+            console.log(''); // Separator space
+        }
         
         const checkbox = isSelected ? chalk.green('[x]') : chalk.gray('[ ]');
-        const label = isSelected ? chalk.green.bold(genre) : chalk.white(genre);
+        let label = isSelected ? chalk.green.bold(genre) : chalk.white(genre);
+        
+        if (isTV) {
+            label = isSelected ? chalk.magenta.bold(genre) : chalk.magenta(genre);
+        }
+        
         const cursor = isHovered ? chalk.cyan('>') : ' ';
         
         console.log(`${cursor} ${checkbox} ${label}`);
@@ -141,16 +151,83 @@ function padAnsi(str, width) {
     return str + ' '.repeat(width - length);
 }
 
-function renderSwipe(activeTheme, user, currentMovieIndex, totalSwipes, movie, asciiPoster, isFlipped) {
-    clearScreen();
-    showHeader(activeTheme);
+function renderSwipe(activeTheme, user, currentMovieIndex, totalSwipes, movie, asciiPoster, isFlipped, gameMode = 'CLASSIC', timeLeft = null) {
+    let output = '';
     
-    const turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${totalSwipes}`;
+    // Use Home cursor for updates to prevent flicker, Clear screen for fresh renders
+    if (timeLeft !== null) {
+        output += '\x1B[H'; 
+    } else {
+        output += '\x1Bc';
+    }
+
     const theme = getTheme(activeTheme);
-    console.log(theme.secondary(`┌${'─'.repeat(CARD_WIDTH)}┐`));
-    console.log(theme.secondary('│ ') + theme.secondary.bold(turnText.padEnd(CARD_WIDTH - 2)) + theme.secondary(' │'));
-    console.log(theme.secondary(`└${'─'.repeat(CARD_WIDTH)}┘
-`));
+
+    // --- HEADER ---
+    let titleText = 'Cinematch';
+    let footerText = 'Created by Jonah Cecil';
+    if (activeTheme === 'HORROR') { titleText = 'SCREAMATCH'; footerText = 'ENTER IF YOU DARE...'; }
+    else if (activeTheme === 'SCI-FI') { titleText = 'CYBERMATCH'; footerText = 'AWAITING NEURAL LINK...'; }
+    else if (activeTheme === 'WESTERN') { titleText = '🤠 HIGH NOON 🌵'; footerText = 'THIS TOWN AIN\'T BIG ENOUGH...'; }
+    else if (activeTheme === 'ROMANCE') { titleText = '💖 LOVEMATCH 💖'; footerText = 'LOVE IS IN THE AIR...'; }
+
+    const title = figlet.textSync(titleText, { font: 'Slant' });
+    const lines = title.split('\n').filter(l => l.trim().length > 0);
+    const width = Math.max(...lines.map(l => l.length));
+    const c1 = theme.corner[0], c2 = theme.corner[1], c3 = theme.corner[2], c4 = theme.corner[3];
+    const border = theme.border.repeat(width + 4);
+    
+    output += theme.primary(`${c1}${border}${c2}`) + '\n';
+    lines.forEach(l => {
+        const side = theme.side || '║';
+        const padding = ' '.repeat(2); 
+        output += theme.primary(`${side}${padding}${l.padEnd(width)}${padding}${side}`) + '\n';
+    });
+    output += theme.primary(`${c3}${border}${c4}`) + '\n';
+    
+    const versionLine = `     v1.11.0 | ${footerText}       `;
+    if (activeTheme === 'HORROR' || activeTheme === 'ROMANCE') output += theme.primary.bold.italic(versionLine) + '\n\n';
+    else if (activeTheme === 'SCI-FI') output += chalk.green.bold(versionLine) + '\n\n';
+    else output += chalk.bold.white(versionLine) + '\n\n';
+    
+    let turnText = `👤 ${user}'s Turn | 🎬 Movie ${currentMovieIndex + 1} of ${totalSwipes}`;
+    if (gameMode === 'BLITZ') {
+        turnText = `⚡ BLITZ! | ${user} | 🎬 ${currentMovieIndex + 1}/${totalSwipes}`;
+    }
+
+    // Manual compensation for emoji widths in the header
+    let visualLen = turnText.length;
+    if (gameMode === 'BLITZ') {
+        const stripped = turnText.replace(/⚡|🎬|👤/g, ''); 
+        const emojiVisualWidth = 6; 
+        visualLen = stripped.length + emojiVisualWidth;
+    } else {
+        const stripped = turnText.replace(/👤|🎬/g, '');
+        visualLen = stripped.length + 4;
+    }
+    
+    const innerWidth = CARD_WIDTH - 2; 
+    let paddingNeeded = innerWidth - visualLen;
+    if (paddingNeeded < 0) paddingNeeded = 0;
+
+    output += theme.secondary(`┌${'─'.repeat(CARD_WIDTH)}┐`) + '\n';
+    output += theme.secondary('│ ') + theme.secondary.bold(turnText) + ' '.repeat(paddingNeeded) + theme.secondary(' │') + '\n';
+    output += theme.secondary(`└${'─'.repeat(CARD_WIDTH)}┘`) + '\n\n';
+
+    // --- TIMER (BLITZ ONLY) ---
+    if (gameMode === 'BLITZ' && timeLeft !== null) {
+        const barWidth = CARD_WIDTH;
+        const filled = Math.ceil((timeLeft / BLITZ_LIMIT_MS) * barWidth);
+        const bar = '█'.repeat(filled).padEnd(barWidth, '░');
+        
+        let color = chalk.green;
+        if (timeLeft <= 1000) color = chalk.red;
+        else if (timeLeft <= 2000) color = chalk.yellow;
+        
+        output += color(bar) + '\n\n';
+    } else {
+        output += '\n\n'; // Match height
+    }
     
     if (isFlipped) {
         // Render the "Back" of the card
@@ -184,46 +261,44 @@ function renderSwipe(activeTheme, user, currentMovieIndex, totalSwipes, movie, a
         let line = '  ';
         words.forEach(word => {
             if ((line + word).length > (CARD_WIDTH - 4)) {
-                console.log(theme.primary('│') + chalk.white(line.padEnd(CARD_WIDTH)) + theme.primary('│'));
+                output += theme.primary('│') + chalk.white(line.padEnd(CARD_WIDTH)) + theme.primary('│') + '\n';
                 line = '  ' + word + ' ';
                 synopsisLines++;
             } else {
                 line += word + ' ';
             }
         });
-        console.log(theme.primary('│') + chalk.white(line.padEnd(CARD_WIDTH)) + theme.primary('│'));
+        output += theme.primary('│') + chalk.white(line.padEnd(CARD_WIDTH)) + theme.primary('│') + '\n';
         synopsisLines++;
 
         // Fill remaining space to match poster height
         const usedLines = 2 + details.length + 1 + 1 + synopsisLines;
         for (let i = 0; i < (POSTER_HEIGHT - usedLines); i++) {
-            console.log(theme.primary('│') + ' '.repeat(CARD_WIDTH) + theme.primary('│'));
+            output += theme.primary('│') + ' '.repeat(CARD_WIDTH) + theme.primary('│') + '\n';
         }
-        console.log(theme.primary(`└${'─'.repeat(CARD_WIDTH)}┘
-`));
+        output += theme.primary(`└${'─'.repeat(CARD_WIDTH)}┘`) + '\n';
     } else {
         // Render the "Front" (Poster)
-        console.log(chalk.blue(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+        output += chalk.blue(`┌${'─'.repeat(CARD_WIDTH)}┐`) + '\n';
         if (asciiPoster) {
-            console.log(asciiPoster.split('\n').map(line => chalk.blue('│') + padAnsi(line, CARD_WIDTH) + chalk.blue('│')).join('\n'));
+            output += asciiPoster.split('\n').map(line => chalk.blue('│') + padAnsi(line, CARD_WIDTH) + chalk.blue('│')).join('\n') + '\n';
         } else {
-            for(let i=0; i<POSTER_HEIGHT; i++) console.log(chalk.blue('│') + ' '.repeat(CARD_WIDTH) + chalk.blue('│'));
+            for(let i=0; i<POSTER_HEIGHT; i++) output += chalk.blue('│') + ' '.repeat(CARD_WIDTH) + chalk.blue('│') + '\n';
         }
-        console.log(chalk.blue(`└${'─'.repeat(CARD_WIDTH)}┘
-`));
+        output += chalk.blue(`└${'─'.repeat(CARD_WIDTH)}┘`) + '\n';
     }
 
     // Movie Card UI (Bottom)
-    console.log(theme.primary(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+    output += theme.primary(`┌${'─'.repeat(CARD_WIDTH)}┐`) + '\n';
     const titleLine = `  ${movie.title}`.padEnd(CARD_WIDTH);
-    console.log(theme.primary('│') + chalk.bgBlue.bold.white(titleLine) + theme.primary('│'));
-    console.log(theme.primary(`├${'─'.repeat(CARD_WIDTH)}┤`));
+    output += theme.primary('│') + chalk.bgBlue.bold.white(titleLine) + theme.primary('│') + '\n';
+    output += theme.primary(`├${'─'.repeat(CARD_WIDTH)}┤`) + '\n';
 
     // Genres Line
     if (movie.genres) {
         const genreText = `  GENRE: ${movie.genres.join(', ')}`.padEnd(CARD_WIDTH);
-        console.log(theme.primary('│') + theme.accent(genreText) + theme.primary('│'));
-        console.log(theme.primary(`├${'─'.repeat(CARD_WIDTH)}┤`));
+        output += theme.primary('│') + theme.accent(genreText) + theme.primary('│') + '\n';
+        output += theme.primary(`├${'─'.repeat(CARD_WIDTH)}┤`) + '\n';
     }
     
     // Synopsis snippet
@@ -248,13 +323,16 @@ function renderSwipe(activeTheme, user, currentMovieIndex, totalSwipes, movie, a
     const wrappedSnippet = wrap(firstSentence, CARD_WIDTH - 4);
     
     wrappedSnippet.forEach((line) => {
-        console.log(theme.primary('│') + chalk.white(`  ${line.padEnd(CARD_WIDTH - 4)}  `) + theme.primary('│'));
+        output += theme.primary('│') + chalk.white(`  ${line.padEnd(CARD_WIDTH - 4)}  `) + theme.primary('│') + '\n';
     });
     
-    console.log(theme.primary(`└${'─'.repeat(CARD_WIDTH)}┘`));
+    output += theme.primary(`└${'─'.repeat(CARD_WIDTH)}┘`) + '\n';
     
-    console.log('\n' + chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (PASS)'));
-    console.log(theme.primary('  [I] Flip Card (INFO)      ') + chalk.gray(' Press Ctrl+C to exit'));
+    output += '\n' + chalk.green('  [→] Swipe Right (LIKE)    ') + chalk.red(' [←] Swipe Left (PASS)') + '\n';
+    output += theme.primary('  [I] Flip Card (INFO)      ') + chalk.gray(' Press Ctrl+C to exit');
+
+    // Write everything in one go
+    process.stdout.write(output);
 }
 
 async function playFlipAnimation(activeTheme, user, currentMovieIndex, totalSwipes, isFlipped) {
@@ -381,7 +459,7 @@ async function playSexyAnimation(activeTheme, u1, u2, score) {
         
         console.log(chalk.magenta.bold(figlet.textSync('FREAKY!', { font: 'Slant' })));
         console.log(chalk.red.bold(`\n   ${u1} and ${u2} are getting freaky tonight baby!`));
-        console.log(chalk.yellow(`   With a massive ${score}% match, it\'s basically destiny...\n`));
+        console.log(chalk.yellow(`   With a massive ${score}% match, it's basically destiny...\n`));
 
         const steamChars = ['~', '░', ' ', '.', '`'];
         const waterChars = ['|', ':', ' ', 'i'];
@@ -412,7 +490,234 @@ function promptRematch(showSummaryOption = true) {
     if (showSummaryOption) {
         console.log(chalk.cyan.bold('   📊 Press [S] for a DETAILED SESSION SUMMARY'));
     }
+    console.log(chalk.cyan.bold('   🏠 Press [M] for MAIN MENU'));
     console.log(chalk.gray('   Press [Q] or Ctrl+C to quit\n'));
+}
+
+function renderMainMenu(activeTheme, menuCursor) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    console.log(chalk.yellow.bold('   MAIN MENU\n'));
+    
+    const options = ['PLAY CLASSIC', 'PLAY BLITZ ⚡', 'DATABASE BROWSER', 'SETTINGS', 'ROADMAP', 'MORE PROJECTS'];
+    const descriptions = [
+        "Relaxed mode. Swipe through 10 movies at your own pace.",
+        "High pressure! 3 seconds per movie. Trust your gut.",
+        "Browse the full Cinematch movie library.",
+        "Adjust colors and preferences.",
+        "See the future features planned for Cinematch.",
+        "Check out my other stuff."
+    ];
+    
+    options.forEach((opt, index) => {
+        const isHovered = index === menuCursor;
+        const cursor = isHovered ? chalk.cyan(' > ') : '   ';
+        const label = isHovered ? chalk.cyan.bold(opt) : chalk.white(opt);
+        console.log(`${cursor}${label}`);
+    });
+    
+    // Render Description Box
+    const theme = getTheme(activeTheme);
+    console.log('\n' + theme.secondary('─'.repeat(CARD_WIDTH)));
+    console.log(chalk.gray.italic(`   ${descriptions[menuCursor]}`));
+    console.log(theme.secondary('─'.repeat(CARD_WIDTH)));
+    
+    console.log(chalk.gray('\n   (Use Arrow Keys to navigate, Enter to select)'));
+}
+
+function renderRoadmap(activeTheme, roadmapContent) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    console.log(chalk.yellow.bold('   🗺️  PROJECT ROADMAP 🗺️\n'));
+    
+    const lines = roadmapContent.split('\n');
+    lines.forEach(line => {
+        if (line.startsWith('# ')) {
+            // Main title - already shown in header, skip or style subtly
+        } else if (line.startsWith('### ')) {
+            console.log(chalk.cyan.bold(`   ${line.replace('### ', '').toUpperCase()}`));
+        } else if (line.startsWith('*')) {
+            console.log(chalk.white(`     • ${line.replace('*', '').trim()}`));
+        } else if (line.trim().length > 0 && !line.startsWith('---')) {
+            console.log(chalk.gray(`     ${line}`));
+        } else {
+            console.log('');
+        }
+    });
+    
+    console.log(chalk.gray('\n   Press any key to return to Main Menu...'));
+}
+
+function renderSettingsMenu(activeTheme, menuCursor, subState = 'MAIN', currentPoolSize = 10) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    if (subState === 'MAIN') {
+        console.log(chalk.yellow.bold('   SETTINGS\n'));
+        const options = ['CHANGE THEME', 'SET POOL SIZE', 'ADD MOVIE (EXPERIMENTAL)', 'CUSTOM MOVIES (EXPERIMENTAL)', 'BACK'];
+        
+        options.forEach((opt, index) => {
+            const isHovered = index === menuCursor;
+            const prefix = isHovered ? chalk.cyan(' > ') : '   ';
+            const label = isHovered ? chalk.cyan.bold(opt) : chalk.white(opt);
+            console.log(`${prefix}${label}`);
+        });
+        
+        console.log(chalk.gray('\n   Current Theme: ' + activeTheme));
+        console.log(chalk.gray('   Current Pool Size: ' + currentPoolSize));
+        
+    } else if (subState === 'THEME') {
+        console.log(chalk.yellow.bold('   SETTINGS: Select a Theme\n'));
+        const themes = ['DEFAULT', 'CRIME', 'FANTASY', 'HORROR', 'SCI-FI', 'WESTERN', 'ROMANCE'];
+        
+        themes.forEach((themeName, index) => {
+            const isHovered = index === menuCursor;
+            const isActive = activeTheme === themeName;
+            
+            let prefix = '   ';
+            if (isHovered) prefix = chalk.cyan(' > ');
+            
+            let label = chalk.white(themeName);
+            if (isActive) label = chalk.green.bold(`${themeName} (Active)`);
+            else if (isHovered) label = chalk.cyan.bold(themeName);
+            
+            console.log(`${prefix}${label}`);
+        });
+        
+    } else if (subState === 'POOL') {
+        console.log(chalk.yellow.bold('   SETTINGS: Force Pool Size\n'));
+        const sizes = [5, 10, 15, 25, 50];
+        
+        sizes.forEach((size, index) => {
+            const isHovered = index === menuCursor;
+            const isActive = size === currentPoolSize;
+            
+            let prefix = '   ';
+            if (isHovered) prefix = chalk.cyan(' > ');
+            
+            let label = `${size}`;
+            if (size >= 25) label += chalk.gray(' (EXPERIMENTAL)');
+            
+            let styledLabel = chalk.white(label);
+            if (isActive) styledLabel = chalk.green.bold(`${label} (Active)`);
+            else if (isHovered) styledLabel = chalk.cyan.bold(label);
+            
+            console.log(`${prefix}${styledLabel}`);
+        });
+        
+        console.log(chalk.gray('\n   (Larger pools take longer to load posters)'));
+    }
+    
+    console.log(chalk.gray('\n   (Press Enter to select, Q or Escape to back)'));
+}
+
+function renderMoreProjects(activeTheme) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    console.log(chalk.yellow.bold('   🚀 MORE PROJECTS\n'));
+    console.log(chalk.white('   Check out my other stuff here:'));
+    console.log(chalk.cyan.bold('\n   🔗 https://github.com/EmanuelMakesThings'));
+    console.log(chalk.gray('\n\n   (Press any key to return to Main Menu)'));
+}
+
+function renderCustomMoviesList(activeTheme, customMovies, cursor) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    console.log(chalk.yellow.bold('   CUSTOM MOVIES (EXPERIMENTAL)\n'));
+    
+    if (customMovies.length === 0) {
+        console.log(chalk.gray('   No custom movies added yet.'));
+        console.log(chalk.gray('\n   (Press Q or ESC to back)'));
+    } else {
+        customMovies.forEach((movie, index) => {
+            const isHovered = index === cursor;
+            const prefix = isHovered ? chalk.cyan(' > ') : '   ';
+            const label = isHovered ? chalk.cyan.bold(movie.title) : chalk.white(movie.title);
+            console.log(`${prefix}${label}`);
+        });
+        console.log(chalk.gray('\n   (Press DEL or BACKSPACE to delete, Q or ESC to back)'));
+    }
+}
+
+function renderDatabaseBrowser(activeTheme, movies, cursor, offset = 0) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    console.log(chalk.yellow.bold('   DATABASE BROWSER\n'));
+    
+    const PAGE_SIZE = 15;
+    const displayedMovies = movies.slice(offset, offset + PAGE_SIZE);
+    
+    displayedMovies.forEach((movie, index) => {
+        const actualIndex = index + offset;
+        const isHovered = actualIndex === cursor;
+        const prefix = isHovered ? chalk.cyan(' > ') : '   ';
+        const label = isHovered ? chalk.cyan.bold(movie.title) : chalk.white(movie.title);
+        console.log(`${prefix}${label}`);
+    });
+
+    if (movies.length > PAGE_SIZE) {
+        console.log(chalk.gray(`\n   Showing ${offset + 1}-${Math.min(offset + PAGE_SIZE, movies.length)} of ${movies.length}`));
+    }
+    
+    console.log(chalk.gray('\n   (Use Arrows to scroll, Enter for Details, ESC for Menu)'));
+}
+
+function renderMovieDetail(activeTheme, movie, asciiPoster) {
+    clearScreen();
+    showHeader(activeTheme);
+    
+    const theme = getTheme(activeTheme);
+
+    console.log(theme.primary(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+    console.log(theme.primary('│') + chalk.bold.white('   MOVIE DETAILS'.padEnd(CARD_WIDTH)) + theme.primary('│'));
+    console.log(theme.primary(`├${'─'.repeat(CARD_WIDTH)}┤`));
+    
+    const details = [
+        { label: 'TITLE', value: movie.title },
+        { label: 'GENRES', value: movie.genres ? movie.genres.join(', ') : 'N/A' },
+        { label: 'RATING', value: movie.rating || 'No rating available' },
+        { label: 'DIRECTOR', value: movie.director || 'Unknown' },
+        { label: 'STARRING', value: movie.stars || 'N/A' }
+    ];
+
+    details.forEach(detail => {
+        const labelStr = `  ${detail.label}: `;
+        const valueStr = detail.value.toString();
+        const availableWidth = CARD_WIDTH - labelStr.length;
+        const truncatedValue = valueStr.length > availableWidth ? valueStr.slice(0, availableWidth - 3) + '...' : valueStr;
+        console.log(theme.primary('│') + theme.accent(labelStr) + chalk.white(truncatedValue.padEnd(availableWidth)) + theme.primary('│'));
+    });
+
+    console.log(theme.primary('│') + ' '.repeat(CARD_WIDTH) + theme.primary('│'));
+    console.log(theme.primary('│') + theme.accent('  SYNOPSIS:'.padEnd(CARD_WIDTH)) + theme.primary('│'));
+    
+    const synopsis = movie.synopsis || '';
+    const words = synopsis.split(' ');
+    let line = '  ';
+    words.forEach(word => {
+        if ((line + word).length > (CARD_WIDTH - 4)) {
+            console.log(theme.primary('│') + chalk.white(line.padEnd(CARD_WIDTH)) + theme.primary('│'));
+            line = '  ' + word + ' ';
+        } else {
+            line += word + ' ';
+        }
+    });
+    console.log(theme.primary('│') + chalk.white(line.padEnd(CARD_WIDTH)) + theme.primary('│'));
+
+    console.log(theme.primary(`└${'─'.repeat(CARD_WIDTH)}┘`));
+    
+    if (asciiPoster) {
+        console.log('\n' + chalk.blue(`┌${'─'.repeat(CARD_WIDTH)}┐`));
+        console.log(asciiPoster.split('\n').map(line => chalk.blue('│') + padAnsi(line, CARD_WIDTH) + chalk.blue('│')).join('\n'));
+        console.log(chalk.blue(`└${'─'.repeat(CARD_WIDTH)}┘`));
+    }
+
+    console.log(chalk.gray('\n   (Press any key to return to Browser)'));
 }
 
 module.exports = {
@@ -426,5 +731,12 @@ module.exports = {
     playCelebration,
     triggerAngryForcedPick,
     playSexyAnimation,
-    promptRematch
+    promptRematch,
+    renderMainMenu,
+    renderRoadmap,
+    renderSettingsMenu,
+    renderMoreProjects,
+    renderCustomMoviesList,
+    renderDatabaseBrowser,
+    renderMovieDetail
 };

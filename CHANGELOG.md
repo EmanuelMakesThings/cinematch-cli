@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2026-01-08
+### Added
+- **Main Menu:** Introduced a sleek landing menu with "Play" and "Settings" options to guide users into the experience.
+- **Force Pool Size:** Added a new setting to override the default 10-movie pool. Choose between 5, 10, 15, 25, or 50 movies per session. Sizes 25 and 50 are marked as **EXPERIMENTAL** due to longer loading times for posters.
+
 ## [1.10.0] - 2026-01-07
 ### Added
 - **Perfect Match Roulette:** When a group finds multiple unanimous "Perfect Matches," the app now triggers a high-energy spinny roulette to help you pick the final winner from the best of the best.

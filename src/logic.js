@@ -15,7 +15,16 @@ function getUniqueGenres(movies) {
             m.genres.forEach(g => genres.add(g));
         }
     });
-    return Array.from(genres).sort();
+    
+    const sortedGenres = Array.from(genres).sort();
+    const tvIndex = sortedGenres.indexOf('TV Shows');
+    
+    if (tvIndex !== -1) {
+        sortedGenres.splice(tvIndex, 1);
+        sortedGenres.push('TV Shows');
+    }
+    
+    return sortedGenres;
 }
 
 function filterMovies(movies, selectedGenres, requiredPoolSize) {
